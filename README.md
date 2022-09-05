@@ -1,7 +1,7 @@
 # Axis_Cam_Tailscale
 
 ## To install Tailscale on Axis cameras
-1. Copy the files "tailscale" and "tailscaled" for the correct proccesor to the camera in a new directory /usr/local/packages/tailscale
+1. Copy the files "tailscale" and "tailscaled" for the correct proccesor to the camera to /usr/local/packages/tailscale
 2. `cd /usr/local/packages/tailscale`
 3. `chmod 777 tailscaled`
 4. `chmod 777 tailscale`
