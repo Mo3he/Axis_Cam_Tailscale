@@ -1,7 +1,7 @@
 ## To install Tailscale on Axis cameras
 
 ### Check Soc
-
+```
 curl --anyauth "*" -u username:password 192.168.0.90/axis-cgi/basicdeviceinfo.cgi --data "{\"apiVersion\":\"1.0\",\"context\":\"Client defined request ID\",\"method\":\"getAllProperties\"}"
 ```
 
