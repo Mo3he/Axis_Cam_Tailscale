@@ -16,7 +16,7 @@
 
 ### You will need to enable SSH via the plain config then:
 
-1. Copy the files "tailscale" and "tailscaled" for the correct proccesor to the camera to /usr/local/packages/tailscale
+1. Copy the files "tailscale" and "tailscaled" for the correct Soc to the camera to /usr/local/packages/tailscale
 2. `cd /usr/local/packages/tailscale`
 3. `chmod 777 tailscaled`
 4. `chmod 777 tailscale`
