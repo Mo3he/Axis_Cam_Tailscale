@@ -15,11 +15,11 @@ You will need to enable SSH via the plain config
 11. Copy URL to browser to authenticate Tailscale
 
 
-### Check Chip Achitecture
+### Check Soc
 `curl --anyauth "*" -u username:password 192.168.0.90/axis-cgi/basicdeviceinfo.cgi --data "{\"apiVersion\":\"1.0\",\"context\":\"Client defined request ID\",\"method\":\"getAllProperties\"}"`
 
 
-## Chip	Architecture
+### Soc	Architecture
 * ARTPEC-6 =	arm
 * ARTPEC-7 = arm
 * ARTPEC-8 = aarch64
