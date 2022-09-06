@@ -17,7 +17,7 @@ curl --anyauth "*" -u username:password 192.168.0.90/axis-cgi/basicdeviceinfo.cg
 
 ### You will need to enable SSH via the plain config then:
 
-Copy the files "tailscale" and "tailscaled" for the correct Soc to the camera to /usr/local/packages/tailscale
+SFTP the files "tailscale" and "tailscaled" for the correct Soc to the camera to /usr/local/packages/tailscale
 
  SSH to camera with root user then run
  ```
@@ -27,7 +27,7 @@ Copy the files "tailscale" and "tailscaled" for the correct Soc to the camera to
  
  chmod 777 tailscale
  ```
- Copy "tailscaled.service" to /etc/systemd/system then run
+ SFTP "tailscaled.service" to /etc/systemd/system then run
  ```
  systemctl daemon-reload
  
