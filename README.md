@@ -1,6 +1,6 @@
 ## To install Tailscale on Axis cameras
 
-You will need to enable SSH via the plainconfig 
+You will need to enable SSH via the plain config 
 
 1. Copy the files "tailscale" and "tailscaled" for the correct proccesor to the camera to /usr/local/packages/tailscale
 2. `cd /usr/local/packages/tailscale`
