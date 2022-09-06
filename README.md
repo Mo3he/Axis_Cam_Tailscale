@@ -16,17 +16,29 @@
 
 ### You will need to enable SSH via the plain config then:
 
-1. Copy the files "tailscale" and "tailscaled" for the correct Soc to the camera to /usr/local/packages/tailscale
-2. `cd /usr/local/packages/tailscale`
-3. `chmod 777 tailscaled`
-4. `chmod 777 tailscale`
-5. Copy "tailscaled.service" to /etc/systemd/system
-6. `systemctl daemon-reload`
-7. `systemctl enable tailscaled.service`
-8. `systemctl start tailscaled.service`
-9. `cd /usr/local/packages/tailscale`
-10. `./tailscale up`
-11. Copy URL to browser to authenticate Tailscale
+Copy the files "tailscale" and "tailscaled" for the correct Soc to the camera to /usr/local/packages/tailscale
+
+ SSH to camera with root user then run
+ ```
+ cd /usr/local/packages/tailscale
+ 
+ chmod 777 tailscaled
+ 
+ chmod 777 tailscale
+ ```
+ Copy "tailscaled.service" to /etc/systemd/system then run
+ ```
+ systemctl daemon-reload
+ 
+ systemctl enable tailscaled.service
+ 
+ systemctl start tailscaled.service
+ 
+ cd /usr/local/packages/tailscale
+ 
+ ./tailscale up
+ ```
+ Copy URL to browser to authenticate Tailscale
 
 
 
