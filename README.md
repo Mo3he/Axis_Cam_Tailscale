@@ -14,7 +14,7 @@
 * S5 = aarch64
 * S5L =	aarch64
 
-### You will need to enable SSH via the plain config 
+### You will need to enable SSH via the plain config then:
 
 1. Copy the files "tailscale" and "tailscaled" for the correct proccesor to the camera to /usr/local/packages/tailscale
 2. `cd /usr/local/packages/tailscale`
