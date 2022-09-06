@@ -14,7 +14,8 @@ You will need to enable SSH via the plainconfig
 10. `./tailscale up`
 11. Copy URL to browser to authenticate Tailscale
 
-Chip	Architecture
+
+## Chip	Architecture
 * ARTPEC-6	arm
 * ARTPEC-7	arm
 * ARTPEC-8	aarch64
