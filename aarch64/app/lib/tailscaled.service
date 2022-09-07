@@ -6,7 +6,7 @@ After=network-pre.target NetworkManager.service systemd-resolved.service
 
 [Service]
 Type=simple
-ExecStart=/usr/local/packages/tailscale/tailscaled --state=/var/lib/tailscale/tailscaled.state
+ExecStart=/usr/local/packages/Tailscale_VPN/lib/tailscaled --state=/var/lib/tailscale/tailscaled.state
 Restart=on-failure
 RestartSec=10
 KillMode=process

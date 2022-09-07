@@ -1,45 +1,34 @@
-## To install Tailscale on Axis cameras
+# The Tailscale ACAP
 
-### Check Soc
+This is the ACAP packaging scripts and files required to install the Tailscale VPN client on Axis Cameras
+
+## Compatibility
+
+The Tailscale ACAP is compatable with cameras with arm and aarch64 based Soc's.
+
 ```
 curl --anyauth "*" -u username:password 192.168.0.90/axis-cgi/basicdeviceinfo.cgi --data "{\"apiVersion\":\"1.0\",\"context\":\"Client defined request ID\",\"method\":\"getAllProperties\"}"
 ```
 
-### Soc	Architecture
-* ARTPEC-6 =	arm
-* ARTPEC-7 = arm
-* ARTPEC-8 = aarch64
-* S2E =	arm
-* S2L =	arm
-* S3L =	arm
-* S5 = aarch64
-* S5L =	aarch64
+where `<device ip>` is the IP address of the Axis device and `<password>` is the root password. Please
+note that you need to enclose your password with quotes (`'`) if it contains special characters.
 
-### You will need to enable SSH via the plain config then:
+## Installing
 
-SFTP the files "tailscale" and "tailscaled" for the correct Soc to the camera to /usr/local/packages/tailscale
+The recommended way to install this ACAP is to use pre built eap file.
 
- SSH to camera with root user then run
- ```
- cd /usr/local/packages/tailscale
- 
- chmod 777 tailscaled
- 
- chmod 777 tailscale
- ```
- SFTP "tailscaled.service" to /etc/systemd/system then run
- ```
- systemctl daemon-reload
- 
- systemctl enable tailscaled.service
- 
- systemctl start tailscaled.service
- 
- cd /usr/local/packages/tailscale
- 
- ./tailscale up
- ```
- Copy URL to browser to authenticate Tailscale
+It's also possible to build and use a locally built image as all necesary files are provided.
+
+## Using the Docker ACAP
+
+The Tailscale ACAP will run a script on startup that will copy a service file to systemd, set required permissions and start the service and app.
+Once started click open to see the output of the logs for further instructions.
+
+When uninstalling the ACAP all changes and files are removed from the camera.
+
+You will need a tailscale.com account to use the ACAP
+
+
 
 
 

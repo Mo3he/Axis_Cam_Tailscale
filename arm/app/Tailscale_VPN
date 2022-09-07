@@ -1,0 +1,18 @@
+#!/bin/sh
+
+
+if [ ! -d "/etc/systemd/system/tailscaled.service" ]
+then
+    echo "Service doesn't exist. Creating now"
+    cp -f /usr/local/packages/Tailscale_VPN/lib/tailscaled.service /etc/systemd/system
+    chmod 777 /usr/local/packages/Tailscale_VPN/lib/tailscale
+    chmod 777 /usr/local/packages/Tailscale_VPN/lib/tailscaled
+    systemctl daemon-reload
+    systemctl enable tailscaled.service
+    systemctl start tailscaled.service
+    echo "Service added"
+    /usr/local/packages/Tailscale_VPN/lib/tailscale up
+else
+    echo "Service exists"
+    /usr/local/packages/Tailscale_VPN/lib/tailscale up
+fi
