@@ -7,9 +7,7 @@ This is the ACAP packaging scripts and files required to install the Tailscale V
 The Tailscale ACAP is compatable with cameras with arm and aarch64 based Soc's.
 
 ```
-
 curl --anyauth "*" -u [username]:[password] 192.168.0.90/axis-cgi/basicdeviceinfo.cgi --data "{\"apiVersion\":\"1.0\",\"context\":\"Client defined request ID\",\"method\":\"getAllProperties\"}"
-
 ```
 
 where `<device ip>` is the IP address of the Axis device and `<password>` is the root password. Please
