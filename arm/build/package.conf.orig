@@ -1,7 +1,7 @@
 APPTYPE="armv7hf"
 APPNAME="Tailscale_VPN"
 PACKAGENAME="Tailscale VPN"
-VENDOR="Axis Communications"
+VENDOR="Tailscale"
 REQEMBDEVVERSION="3.0"
 APPGRP="root"
 APPUSR="root"
