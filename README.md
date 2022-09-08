@@ -19,7 +19,7 @@ The recommended way to install this ACAP is to use pre built eap file.
 
 It's also possible to build and use a locally built image as all necesary files are provided.
 
-## Using the Docker ACAP
+## Using the Tailscale ACAP
 
 The Tailscale ACAP will run a script on startup that will copy a service file to systemd, set required permissions and start the service and app.
 Once started click open to see the output of the logs for further instructions.

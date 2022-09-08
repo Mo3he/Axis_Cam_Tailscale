@@ -5,7 +5,7 @@
         "architecture": "armv7hf",
           "appName": "Tailscale_VPN",
           "friendlyName": "Tailscale VPN",
-          "vendor": "Axis Communications",
+          "vendor": "Tailscale",
           "embeddedSdkVersion": "3.0",
           "user": {
               "group": "root",
