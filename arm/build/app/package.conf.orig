@@ -1,4 +1,4 @@
-APPTYPE="aarch64"
+APPTYPE="armv7hf"
 APPNAME="Tailscale_VPN"
 PACKAGENAME="Tailscale VPN"
 VENDOR="Tailscale"
