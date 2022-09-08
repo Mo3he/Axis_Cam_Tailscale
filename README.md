@@ -46,6 +46,12 @@ When uninstalling the ACAP, all changes and files are removed from the camera.
 
 You will need a tailscale.com account to use the ACAP
 
+## Updating Tailscale version
+
+The eap files will be updated from time to time alternativly simply replace the files "tailscale" and "tailscaled" in the app directory with the new versions before building.
+Make sure you use the files for the correct Soc.
+Latest versions can be found at https://pkgs.tailscale.com/stable/#static
+
 
 
 
