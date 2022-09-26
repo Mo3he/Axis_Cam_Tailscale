@@ -39,7 +39,7 @@ It's also possible to build and use a locally built image as all necesary files 
 
 ## Using the Tailscale ACAP
 
-The Tailscale ACAP will run a script on startup that will copy a service file to systemd, set required permissions and start the service and app.
+The Tailscale ACAP will run a script on startup that sets the required permissions and starts the service and app.
 Once started click open to see the output of the logs for further instructions.
 
 When uninstalling the ACAP, all changes and files are removed from the camera.
