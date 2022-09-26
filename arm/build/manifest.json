@@ -5,7 +5,7 @@
         "architecture": "armv7hf",
           "appName": "Tailscale_VPN",
           "friendlyName": "Tailscale VPN",
-          "vendor": "Tailscale",
+          "vendor": "Tailscale - Packaged by Axis Labs",
           "embeddedSdkVersion": "3.0",
           "user": {
               "group": "root",
@@ -13,10 +13,7 @@
           },
           "vendorUrl": "https://www.tailscale.com",
           "runMode": "once",
-          "version": "1.30.0"
-      },
-      "uninstallation": {
-          "preUninstallScript": "preuninstallscript.sh"
+          "version": "1.30.2"
       },
       "configuration":  {
         "settingPage": "index.html"
