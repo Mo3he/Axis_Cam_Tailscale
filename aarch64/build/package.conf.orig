@@ -8,6 +8,6 @@ APPUSR="root"
 VENDORHOMEPAGELINK='<a href="https://www.tailscale.com" target="_blank">www.tailscale.com</a>'
 STARTMODE="once"
 APPMAJORVERSION="1"
-APPMINORVERSION="30"
+APPMINORVERSION="32"
 APPMICROVERSION="2"
 SETTINGSPAGEFILE="index.html"
