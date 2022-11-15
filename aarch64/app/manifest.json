@@ -5,7 +5,7 @@
         "architecture": "aarch64",
           "appName": "Tailscale_VPN",
           "friendlyName": "Tailscale VPN",
-          "vendor": "Tailscale - Packaged by Axis Labs",
+          "vendor": "Tailscale - Packaged by Axis SIT",
           "embeddedSdkVersion": "3.0",
           "user": {
               "group": "root",
