@@ -7,7 +7,7 @@ Current version 1.34.0
 ## Purpose
 
 Adding a VPN client directly to the camera allows secure remote access to the device without requiring any other equipment or network configuration.
-Tailscale achieves this in a secure, easy to setup and easy to use way.
+Tailscale achieves this in a secure, simple to setup and easy to use way.
 Tailscale is based on WireGuard VPN tunneling technology.
 
 https://tailscale.com/blog/how-tailscale-works/
