@@ -37,21 +37,6 @@ note that you need to enclose your password with quotes (`'`) if it contains spe
 
 The recommended way to install this ACAP is to use the pre built eap file in the build diretory.
 
-It's also possible to build and use a locally built image as all necesary files are provided.
-
-Replace binaries in lib folder with new versions.
-
-https://pkgs.tailscale.com/stable/
-
-To build, 
-From main directory of the version you want (arm/aarch64)
-
-```
-docker build --tag <package name> . 
-```
-```
-docker cp $(docker create <package name>):/opt/app ./build 
-```
 
 ## Using the Tailscale ACAP
 
@@ -66,7 +51,25 @@ You will need a tailscale.com account to use the ACAP
 
 The eap files will be updated from time to time alternativly simply replace the files "tailscale" and "tailscaled" in the app directory with the new versions before building.
 Make sure you use the files for the correct Soc.
-Latest versions can be found at https://pkgs.tailscale.com/stable/#static
+
+It's also possible to build and use a locally built image as all necesary files are provided.
+
+Replace binaries in lib folder with new versions.
+
+Latest versions can be found at 
+
+https://pkgs.tailscale.com/stable/#static
+
+
+To build, 
+From main directory of the version you want (arm/aarch64)
+
+```
+docker build --tag <package name> . 
+```
+```
+docker cp $(docker create <package name>):/opt/app ./build 
+```
 
 
 
