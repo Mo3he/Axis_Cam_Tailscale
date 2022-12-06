@@ -47,12 +47,12 @@ You will need a tailscale.com account to use the ACAP
 
 ## Updating Tailscale version
 
-The eap files will be updated from time to time alternativly simply replace the files "tailscale" and "tailscaled" in the app directory with the new versions before building.
-Make sure you use the files for the correct Soc.
+The eap files will be updated from time to time and simply installing the new version over the old will update all files.
 
 It's also possible to build and use a locally built image as all necesary files are provided.
 
-Replace binaries in lib folder with new versions.
+Replace binaries "tailscale" and "tailscaled" in lib folder with new versions.
+Make sure you use the files for the correct Soc.
 
 Latest versions can be found at 
 
