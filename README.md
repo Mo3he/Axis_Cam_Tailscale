@@ -39,6 +39,20 @@ The recommended way to install this ACAP is to use the pre built eap file in the
 
 It's also possible to build and use a locally built image as all necesary files are provided.
 
+Replace binaries in lib folder with new versions.
+
+https://pkgs.tailscale.com/stable/
+
+To build, 
+From main directory of the version you want (arm/aarch64)
+
+```
+docker build --tag <package name> . 
+```
+```
+docker cp $(docker create <package name>):/opt/app ./build 
+```
+
 ## Using the Tailscale ACAP
 
 The Tailscale ACAP will run a script on startup that sets the required permissions and starts the service and app.
