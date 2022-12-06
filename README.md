@@ -24,7 +24,7 @@ https://www.wireguard.com/
 
 ## Compatibility
 
-The Tailscale ACAP is compatable with cameras with arm and aarch64 based Soc's.
+The Tailscale ACAP is compatable with Axis cameras with arm and aarch64 based Soc's.
 
 ```
 curl --anyauth "*" -u <username>:<password> <device ip>/axis-cgi/basicdeviceinfo.cgi --data "{\"apiVersion\":\"1.0\",\"context\":\"Client defined request ID\",\"method\":\"getAllProperties\"}"
