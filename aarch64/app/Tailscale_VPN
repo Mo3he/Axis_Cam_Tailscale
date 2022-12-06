@@ -7,3 +7,4 @@
     echo "Service Started"
     echo "Scroll to Bottom for link"
     /usr/local/packages/Tailscale_VPN/lib/tailscale up
+    wait

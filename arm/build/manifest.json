@@ -5,7 +5,7 @@
         "architecture": "armv7hf",
           "appName": "Tailscale_VPN",
           "friendlyName": "Tailscale VPN",
-          "vendor": "Tailscale - Packaged by Axis SIT",
+          "vendor": "Tailscale - Packaged by Axis Axis Labs",
           "embeddedSdkVersion": "3.0",
           "user": {
               "group": "root",
@@ -13,7 +13,7 @@
           },
           "vendorUrl": "https://www.tailscale.com",
           "runMode": "once",
-          "version": "1.32.2"
+          "version": "1.34.0"
       },
       "configuration":  {
         "settingPage": "index.html"
