@@ -1,5 +1,3 @@
-Copyright (C) <year>, Axis Communications AB, Lund, Sweden. All Rights Reserved.
-    
 # The Tailscale ACAP
 
 This is the ACAP packaging scripts and files required to install the Tailscale VPN client on Axis Cameras.
