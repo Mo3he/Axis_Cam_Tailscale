@@ -94,13 +94,13 @@ Enhancement suggestions are tracked as [GitHub issues][issues].
 Start by [forking the repository](https://docs.github.com/github/getting-started-with-github/fork-a-repo), i.e. copying the repository to your account to grant you write access. Continue with cloning the forked repository to your local machine.
 
 ```sh
-git clone https://github.com/<your username>/tailscale-acap.git
+git clone https://github.com/Mo3he/Axis_Cam_Tailscale.git
 ```
 
 Navigate into the cloned directory and create a new branch:
 
 ```sh
-cd tailscale-acap
+cd Axis_Cam_Tailscale
 git switch -c <branch name>
 ```
 
