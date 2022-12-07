@@ -20,6 +20,8 @@ https://github.com/tailscale/tailscale
 
 https://www.wireguard.com/
 
+https://www.axis.com/
+
 ## Compatibility
 
 The Tailscale ACAP is compatable with Axis cameras with arm and aarch64 based Soc's.
