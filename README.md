@@ -35,6 +35,8 @@ note that you need to enclose your password with quotes (`'`) if it contains spe
 
 The recommended way to install this ACAP is to use the pre built eap file in the build diretory.
 
+![alt text](https://github.com/Mo3he/Axis_Cam_Tailscale/blob/main/images/ACAP.png)
+
 
 ## Using the Tailscale ACAP
 
