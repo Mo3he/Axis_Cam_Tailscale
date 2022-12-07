@@ -34,6 +34,8 @@ note that you need to enclose your password with quotes (`'`) if it contains spe
 ## Installing
 
 The recommended way to install this ACAP is to use the pre built eap file.
+Go to "Apps" on the camera and click "Add app".
+Once installed it will look like below.
 
 ![alt text](https://github.com/Mo3he/Axis_Cam_Tailscale/blob/main/images/ACAP.png)
 
@@ -41,7 +43,7 @@ The recommended way to install this ACAP is to use the pre built eap file.
 ## Using the Tailscale ACAP
 
 The Tailscale ACAP will run a script on startup that sets the required permissions and starts the service and app.
-Once started click open to see the output of the logs for further instructions.
+Once started click "Open" to see the output of the logs for further instructions and obtain the authetication URL.
 
 When uninstalling the ACAP, all changes and files are removed from the camera.
 
