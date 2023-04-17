@@ -2,7 +2,7 @@
 
 This ACAP packages the scripts and files required to install the Tailscale VPN client on Axis Cameras.
 
-Current version 1.34.0
+Current version 1.38.4
 
 ## Purpose
 
