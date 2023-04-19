@@ -4,7 +4,7 @@
       "setup": {
           "appName": "Tailscale_VPN",
           "friendlyName": "Tailscale VPN",
-          "vendor": "Tailscale - Packaged by Axis Axis Labs",
+          "vendor": "Tailscale - Packaged by Axis Labs",
           "embeddedSdkVersion": "3.0",
           "user": {
               "group": "root",
@@ -13,10 +13,9 @@
           "vendorUrl": "https://www.tailscale.com",
           "runMode": "once",
           "version": "1.38.4"
-      },
-      "configuration":  {
-        "settingPage": "index.html"
-      }
-     
+        },
+        "configuration":  {
+          "settingPage": "index.html"
+        }
       }
   }
