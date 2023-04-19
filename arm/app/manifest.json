@@ -2,7 +2,6 @@
   "schemaVersion": "1.3",
   "acapPackageConf": {
       "setup": {
-        "architecture": "armv7hf",
           "appName": "Tailscale_VPN",
           "friendlyName": "Tailscale VPN",
           "vendor": "Tailscale - Packaged by Axis Axis Labs",
