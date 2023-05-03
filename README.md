@@ -37,9 +37,6 @@ note that you need to enclose your password with quotes (`'`) if it contains spe
 
 The recommended way to install this ACAP is to use the pre built eap file.
 Go to "Apps" on the camera and click "Add app".
-Once installed it will look like below.
-
-![alt text](https://github.com/Mo3he/Axis_Cam_Tailscale/blob/main/images/ACAP.png)
 
 
 ## Using the Tailscale ACAP
