@@ -1,4 +1,4 @@
-Please consider sponsoring my work ----------------->>>>>>>>>>>>>>>>>>>>>>>>>
+If you like the ACAP, please consider sponsoring my work ----------------->>>>>>>>>>>>>>>>>>>>>>>>>
 
 # The Tailscale installer ACAP
 
