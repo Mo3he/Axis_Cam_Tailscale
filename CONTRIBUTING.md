@@ -6,6 +6,7 @@ All types of contributions are encouraged and valued. See the [Table of contents
 > - Tweet about it
 > - Refer this project in your project's readme
 > - Mention the project at local meetups and tell your friends/colleagues
+> - A sponsorship of any amount is always appreciated
 
 <!-- omit in toc -->
 ## Table of contents
