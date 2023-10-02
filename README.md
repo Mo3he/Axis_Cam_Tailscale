@@ -1,5 +1,3 @@
-If you like the ACAP, please consider sponsoring my work ----------------->>>>>>>>>>>>>>>>>>>>>>>>>
-
 # The Tailscale installer ACAP
 
 This ACAP packages the scripts and files required to install the Tailscale VPN client on Axis Cameras.
