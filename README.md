@@ -4,6 +4,8 @@ This ACAP packages the scripts and files required to install the Tailscale VPN c
 
 Current version 1.50.1
 
+https://tailscale.com/changelog/
+
 ## Purpose
 
 Adding a VPN client directly to the camera allows secure remote access to the device without requiring any other equipment or network configuration.
