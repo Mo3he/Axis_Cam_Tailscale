@@ -17,6 +17,8 @@ Please also remember that these ACAPS are in no way affiliated with or authorize
 
 Thank you for your continued support.
 
+If you have a use case where certain functionality used by an ACAP application currently requires root-user permissions or have a question about ACAP application signing, please contact Axis at acap-privileges@axis.com
+
 ## Purpose
 
 Adding a VPN client directly to the camera allows secure remote access to the device without requiring any other equipment or network configuration.
