@@ -7,6 +7,19 @@ There is also now a version called "Auto Update" that will automatically keep ta
 
 https://tailscale.com/changelog/
 
+## Warning
+Unfortunately Axis is making changes to its firmware that will have breaking changes for a lot of ACAPs including my own and as of today there is no way to ready my ACAPs for these changes.
+ 
+You can read more here
+ 
+https://help.axis.com/en-us/axis-os#upcoming-breaking-changes
+
+Please also remember that these ACAPS are in no way affiliated with or authorized by Axis and come with no warranty or support, they are provided as is and while I hope they will continue working in the future there is no guarantee.
+
+Thank you for your continued support.
+
+If you have a use case where certain functionality used by an ACAP application currently requires root-user permissions or have a question about ACAP application signing, please contact Axis at acap-privileges@axis.com
+
 ## Purpose
 
 Adding a VPN client directly to the camera allows secure remote access to the device without requiring any other equipment or network configuration.
