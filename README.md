@@ -8,7 +8,7 @@ There is also now a version called "Auto Update" that will automatically keep ta
 https://tailscale.com/changelog/
 
 ## Warning
-Unfortunately Axis is making changes to its firmware that will have breaking changes for a lot of ACAPs including my own and as of today there is no way to ready my ACAPs for these changes.
+Unfortunately Axis is making changes to its firmware that will prevent the use of a lot of ACAPs including my own and as of today there is no way to ready my ACAPs for these changes.
  
 You can read more here
  
