@@ -12,7 +12,7 @@
           },
           "vendorUrl": "https://www.tailscale.com",
           "runMode": "once",
-          "version": "1.60.0"
+          "version": "1.62.0"
         },
         "configuration":  {
           "settingPage": "index.html"
