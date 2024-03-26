@@ -8,7 +8,7 @@ There is also now a version called "Auto Update" that will automatically keep ta
 https://tailscale.com/changelog/
 
 ## Warning
-Axis is making changes to its firmware that will include the removal of root privliages from ACAP.
+Axis is making changes to its firmware that will include the removal of root privileges from ACAP.
 With the release of Axis OS 12, ACAP's requiring root will no longer work.
 The Tailscale ACAP requires root to function.
  
