@@ -2,7 +2,7 @@
   "schemaVersion": "1.6.0",
   "acapPackageConf": {
       "setup": {
-          "appName": "Tailscale_VPN",
+          "appName": "tailscale_vpn",
           "friendlyName": "Tailscale VPN",
           "vendor": "Tailscale - Packaged by Mo3he",
           "embeddedSdkVersion": "3.0",          
