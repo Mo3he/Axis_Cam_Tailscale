@@ -1,0 +1,12 @@
+APPNAME="tailscale_vpn"
+APPID="414812"
+PACKAGENAME="Tailscale VPN"
+VENDOR="Tailscale - Packaged by Mo3he"
+REQEMBDEVVERSION="3.0"
+VENDORHOMEPAGELINK='<a href="https://www.tailscale.com" target="_blank">www.tailscale.com</a>'
+STARTMODE="once"
+APPMAJORVERSION="1"
+APPMINORVERSION="63"
+APPMICROVERSION="0"
+LICENSEPAGE="axis"
+SETTINGSPAGEFILE="index.html"

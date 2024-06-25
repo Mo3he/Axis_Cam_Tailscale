@@ -1,0 +1,3 @@
+PKGS += axpackage
+SRCS += ./libs/axLicense/axLicense.c
+LDLIBS += -Wl,-Bstatic,-llicensekey_stat,-Bdynamic,-llicensekey -ldl
