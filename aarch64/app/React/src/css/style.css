@@ -1,0 +1,218 @@
+body {
+  font-family: sans-serif,Helvetica, Arial, Verdanda, Tahoma, Geneva;
+  font-size: 12px;
+}
+
+/*h1  {  
+  font-family: Helvetica, Arial, Verdanda, Tahoma, Geneva, sans-serif;
+  color: #484848;
+  font-size: 18px;
+  font-weight: bold;
+}*/
+
+button {  
+  font-family: Helvetica, Arial, Verdanda, Tahoma, Geneva, sans-serif;
+  color: #ffffff;
+  font-size: 12px;
+  background: grey;
+  padding: 5px 15px 5px 15px;
+  text-decoration: none;
+  text-shadow: none;
+  border: none;
+  cursor: pointer;  
+  border-radius: 25px;  
+}
+
+#tables{
+ display: flex;
+ padding-left: 0px; 
+}
+
+
+.SLInput {
+  font-size: 12px;
+  font-family: sans-serif;
+  border: 1px solid grey;
+  padding: 4px;
+  margin: 2px;
+  width: 250px;
+  float:initial;
+}
+
+.SLInput_res {
+  font-size: 12px;
+  font-family: sans-serif;
+  border: 1px solid grey;
+  padding: 4px;
+  margin: 2px;
+  width: 72px;
+  float:initial;
+}
+
+.SLInput_dropres {
+  font-size: 12px;
+  font-family: sans-serif;
+  border: 1px solid grey;
+  padding: 4px;
+  margin: 2px;
+  width: 100px;
+  float:initial;
+}
+
+
+.header {
+  height: 40px;
+  width: auto;
+  background-color: rgb(216,207,198);
+  margin: 0px;
+  border-bottom: 3px solid #ffcb31;
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  text-align: center;
+  padding: 0px;
+  margin: 0px;
+}
+
+.header .logo {
+  
+  background-repeat: no-repeat;
+  width: 83px;
+  height: 30px;
+  left: 20px;
+  top: 5px;
+  position: absolute;
+}
+
+.header h1 {    
+  position: absolute;
+  top: 10px;
+}
+
+.saving h1 {
+  color: grey;
+  font-size: 15px;
+  margin-top: 5px;
+}
+
+.settings-menu {
+  width: 100%;
+  background-color: #ffffff;
+  margin: 0px;
+  border-bottom: 3px solid rgb(0,157,220);
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  top: 43px;
+  text-align: left;
+  padding: 0px;
+  margin: 0px;
+  z-index: 10;
+}
+
+.settings-menu {
+  overflow: visible;
+}
+
+.settings-item {
+  position: relative;
+  top: 0;
+  bottom: 0;
+  padding: 10px 40px 10px 10px;
+  margin: 10px;  
+  display: inline-block;
+  float: left;
+  overflow: visible;
+  max-width: 400px;
+}
+
+.settings-item h1 {
+  color: rgb(0,157,220);
+  font-size: 15px;
+  margin-top: 5px;
+}
+
+.settings-item span {
+  width: 100px;
+  display: inline-block;
+}
+
+
+#logo {
+ font-size:50px;
+ color:black;
+ top: 50px;
+}
+
+
+
+#ruleSpinner {
+ padding-top: 20px;
+ position: absolute;
+ left: 0px;
+}
+
+#main {
+ top: 50px;
+ position: relative;
+ color: grey;
+ font-size: 15px;
+ font-weight: bold;
+}
+
+#configpage{
+ top: 70px;
+ left:250px;
+ position: absolute;
+ color: grey;
+ font-size: 15px; 
+}
+
+#homepage{
+ width: 800px;
+ top: 70px;
+ left:250px;
+ position: absolute;
+ color: grey;
+ font-size: 15px; 
+}
+
+
+
+#savebutton {
+
+  left:50px; 
+  padding-top:20px;  
+}
+
+li:hover{
+ background-color:#FFC106;
+}
+
+
+
+#licensepage {
+ padding-left:50px;
+}
+
+#licenseCode {
+ width:250px;
+}
+
+
+#savelayoutdiv {
+    position: absolute;
+    padding-left: 20px;
+    padding-right: 20px;
+    top: 60px;
+    left: 690px;
+    #background-color:grey;
+    #width:100px;
+    #border-radius:25px;
+}
+
+
+
+
+
