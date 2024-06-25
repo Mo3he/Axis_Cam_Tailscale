@@ -1,5 +1,6 @@
 #//Version=Native
 AXIS_USABLE_LIBS = UCLIBC GLIBC
+include libs/*/makefile.info
 
 PROG     = tailscale_vpn
 

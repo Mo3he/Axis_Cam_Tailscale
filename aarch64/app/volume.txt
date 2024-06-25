@@ -1,0 +1,5 @@
+#AARCH64
+sudo docker run --rm -v /mnt/c/Users/mparodi/Documents/mySharedApps/Axis_Cam_Tailscale/aarch64/app:/opt/app/Axis_Cam_Tailscale -it axisecp/acap-native-sdk:1.14-aarch64
+
+#ARMV7HF
+sudo docker run --rm -v /mnt/c/Users/mparodi/Documents/mySharedApps/Axis_Cam_Tailscale/arm/app:/opt/app/Axis_Cam_Tailscale -it axisecp/acap-native-sdk:1.14-armv7hf
