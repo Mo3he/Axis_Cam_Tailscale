@@ -2,13 +2,17 @@
   "schemaVersion": "1.6.0",
   "acapPackageConf": {
       "setup": {
-          "appName": "Tailscale_VPN",
+          "appName": "tailscale_vpn",
+          "appId":"414812",
           "friendlyName": "Tailscale VPN",
           "vendor": "Tailscale - Packaged by Mo3he",
           "embeddedSdkVersion": "3.0",          
           "vendorUrl": "https://www.tailscale.com",
           "runMode": "once",
           "version": "1.63.0"
+        },
+        "copyProtection": {
+            "method": "axis"
         },
         "configuration":  {
           "settingPage": "index.html"
