@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "./libs/axLicense/axLicense.h"
 #include "app.h"
 
 #define TAILSCALE_VPN "\
@@ -23,20 +24,26 @@ wait \n\
 //****************/
 /* main function */
 //****************/
-
 int main() {
 /* Loop main (keeps the app running. without this part the app will start and stop right after) */
- GMainLoop *main_loop;
- main_loop = g_main_loop_new(NULL, FALSE);
+    GMainLoop *main_loop;
+    main_loop = g_main_loop_new(NULL, FALSE);
 
-/* LOG app name (appname) */    
- syslog(LOG_INFO, "Starting %s", APP_NAME); 
- g_message("Starting %s",APP_NAME);
+    //check license
+    if (!axLicense_checkLicense1()){
+        syslog(LOG_ERR,"License key not installed. Exiting");
+        g_message("License key not installed. Exiting");
+        return 0;
+    }
 
- system(TAILSCALE_VPN);
- 
-/* calling main loop */
- g_main_loop_run(main_loop); 
+    /* LOG app name (appname) */    
+    syslog(LOG_INFO, "Starting %s", APP_NAME); 
+    g_message("Starting %s",APP_NAME);
+    //run script
+    system(TAILSCALE_VPN);
+    
+    /* calling main loop */
+    g_main_loop_run(main_loop); 
 
 //exit    
  return 0; 
