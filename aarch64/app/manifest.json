@@ -9,7 +9,7 @@
           "embeddedSdkVersion": "3.0",          
           "vendorUrl": "https://www.tailscale.com",
           "runMode": "once",
-          "version": "1.63.0"
+          "version": "1.68.1"
         },
         "copyProtection": {
             "method": "axis"
