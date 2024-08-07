@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+<head>
+    <h1 style="color:red;">Scroll to the bottom to find authentication URL</h1>
+    <script>
+        function refreshIFrame() {
+            var x = document.getElementById("*Your_iframe_id*");
+            x.contentWindow.location.reload();
+            var t = setTimeout(refreshIFrame, 5000);
+        }
+    </script>
+</head>
+<body onload="refreshIFrame()"> 
+    <iframe id="*Your_iframe_id*" src= "/axis-cgi/admin/systemlog.cgi?appname=Tailscale_VPN" style="height:600px;width:100%;border: none;" ></iframe>
+</body>
+
+</body>
+</html>
