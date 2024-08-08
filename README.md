@@ -10,7 +10,7 @@ https://tailscale.com/changelog/
 
 ## Good news, everyone!
 
-We have found a way to run the Tailscale ACAP without root privileges allowing the it to run on Axis OS 12.
+We have found a way to run the Tailscale ACAP without root privileges allowing it to run on Axis OS 12.
 
 The changes are implemented from version 1.68.1
 
