@@ -84,6 +84,14 @@ docker build --tag <package name> .
 docker cp $(docker create <package name>):/opt/app ./build 
 ```
 
+Thanks to wesQ3 there is now also a version in the "all" folder with a script that simplifies the build process with the following changes.
+
+1. Architecture specific build directories are not required, target arch is now an argument
+
+2. manifest files are templated as part of the build
+
+3. Tailscale binaries are downloaded as part of the build
+
 
 
 
