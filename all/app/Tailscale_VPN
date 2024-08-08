@@ -1,0 +1,10 @@
+#!/bin/sh
+
+    echo "Starting Service"
+    chmod 777 /usr/local/packages/Tailscale_VPN/lib/tailscale
+    chmod 777 /usr/local/packages/Tailscale_VPN/lib/tailscaled
+    /usr/local/packages/Tailscale_VPN/lib/tailscaled --tun=userspace-networking --socket=/usr/local/packages/Tailscale_VPN/tailscaled.sock &
+    echo "Service Started"
+    echo "Scroll to Bottom for link"
+    /usr/local/packages/Tailscale_VPN/lib/tailscale --socket=/usr/local/packages/Tailscale_VPN/tailscaled.sock up
+    wait
