@@ -9,6 +9,12 @@ https://tailscale.com/changelog/
 
 The "Auto Update" version has been removed since it no longer works given the files are not stored in the default location.
 
+## Testers needed
+
+I have added a new "custom" version (Tailscale_VPN_Custom_1_82_0_aarch64.eap) which allows you to set a custom server and auth key.
+Please give it a try and let me know if it works well or if you have issues.
+
+
 ## Good news, everyone!
 
 We have found a way to run the Tailscale ACAP without root privileges allowing it to run on Axis OS 12.
