@@ -11,9 +11,10 @@ The "Auto Update" version has been removed since it no longer works given the fi
 
 ## Testers needed
 
-I have added a new "custom" version (Tailscale_VPN_Custom_1_82_0_aarch64.eap) which allows you to set a custom server and auth key.
+I have added a new "custom" version (Tailscale_VPN_Custom_1_82_0_aarch64.eap) which allows you to set a custom server and auth key for use of headscale.
 Please give it a try and let me know if it works well or if you have issues.
 
+If you get a tls error restart the app.
 
 ## Good news, everyone!
 
