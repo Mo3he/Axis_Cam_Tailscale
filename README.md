@@ -6,6 +6,8 @@ Current version 1.82.0
 
 https://tailscale.com/changelog/
 
+The "ROOT" versions require root privileges on the camera and will not work on OS 12 up.
+
 ## Testers needed
 
 I have added a new "custom" version (Tailscale_VPN_Custom_1_82_0_aarch64.eap) which allows you to set a custom server and auth key for use of headscale.
