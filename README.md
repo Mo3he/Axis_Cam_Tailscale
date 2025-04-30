@@ -102,6 +102,8 @@ Thanks to wesQ3 there is now also a version in the "all" folder with a script th
 3. Tailscale binaries are downloaded as part of the build
 
 
+## Star History
 
+[![Star History Chart](https://api.star-history.com/svg?repos=Mo3he/Axis_Cam_Tailscale&type=Date)](https://www.star-history.com/#Mo3he/Axis_Cam_Tailscale&Date)
 
 
