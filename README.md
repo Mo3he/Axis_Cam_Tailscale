@@ -8,7 +8,7 @@ https://tailscale.com/changelog/
 
 The "ROOT" versions require root privileges on the camera and will not work on OS 12 up.
 
-If you like the ACAP a sponsor would be amazing, every bit helps.
+If you like my work and want to help me to keep maintaining it, a sponsor would be amazing, every bit helps.
 
 [:dollar: Sponsor](https://github.com/sponsors/Mo3he)
 
