@@ -14,7 +14,7 @@ If you like my work and want to help me to keep maintaining it, a sponsor would 
 
 ## Testers needed
 
-I have added a new "custom" version (Tailscale_VPN_Custom_1_82_0_aarch64.eap) which allows you to set a custom server and auth key for use of headscale.
+I have added a new "custom" version (Tailscale_VPN_Custom_1_84_0_aarch64.eap) which allows you to set a custom server and auth key for use of headscale.
 
 Click the three dots then "settings" to add your details.
 If you get a tls error restart the app.
