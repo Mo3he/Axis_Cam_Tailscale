@@ -8,6 +8,10 @@ https://tailscale.com/changelog/
 
 The "ROOT" versions require root privileges on the camera and will not work on OS 12 up.
 
+If you like my work and want to help me to keep maintaining it, a sponsor would be amazing, every bit helps.
+
+[:dollar: Sponsor](https://github.com/sponsors/Mo3he)
+
 ## Testers needed
 
 I have added a new "custom" version (Tailscale_VPN_Custom_1_82_0_aarch64.eap) which allows you to set a custom server and auth key for use of headscale.
@@ -21,7 +25,11 @@ Please give it a try and let me know if it works well or if you have issues.
 
 We have found a way to run the Tailscale ACAP without root privileges allowing it to run on Axis OS 12.
 
-The changes are implemented from version 1.68.1
+Please note this new version runs in user space networking mode and therefore has some limitations, most notably the camera will not be able to connect out to other Tailscale nodes.
+This does not affect the normal use case of using Tailscale to connect to the camera.
+If you require full functionality, please do not upgrade to Axis OS 12 and use the version marked "ROOT".
+
+The changes are implemented from version 1.68.1 of the acap.
 
 Thank you for your continued support.
 
@@ -102,6 +110,8 @@ Thanks to wesQ3 there is now also a version in the "all" folder with a script th
 3. Tailscale binaries are downloaded as part of the build
 
 
+## Star History
 
+[![Star History Chart](https://api.star-history.com/svg?repos=Mo3he/Axis_Cam_Tailscale&type=Date)](https://www.star-history.com/#Mo3he/Axis_Cam_Tailscale&Date)
 
 
