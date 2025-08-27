@@ -8,7 +8,7 @@
             "embeddedSdkVersion": "3.0",
             "vendorUrl": "https://www.tailscale.com",
             "runMode": "respawn",
-            "version": "1.84.0"
+            "version": "1.86.2"
         },
         "configuration": {
             "settingPage": "index.html",
