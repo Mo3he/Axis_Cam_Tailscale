@@ -1,0 +1,125 @@
+name: Auto Build & Release Tailscale ACAP
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force build even if version exists"
+        required: false
+        default: "false"
+  schedule:
+    - cron: '0 6 * * *'  # optional: daily at 06:00 UTC
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+
+    # 1. Checkout repo
+    - uses: actions/checkout@v3
+      with:
+        persist-credentials: true
+        fetch-depth: 0
+
+    # 2. Get latest Tailscale version
+    - name: Get latest Tailscale version
+      id: tailscale_version
+      run: |
+        VERSION=$(curl -s https://api.github.com/repos/tailscale/tailscale/releases/latest | jq -r .tag_name)
+        VERSION=${VERSION#v}  # remove leading 'v'
+        echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    # 3. Download Tailscale binaries
+    - name: Download Tailscale binaries
+      run: |
+        mkdir -p tailscale_bins
+        curl -L "https://pkgs.tailscale.com/stable/tailscale_${RELEASE_VERSION}_arm.tgz" -o tailscale_arm.tgz
+        tar -xzf tailscale_arm.tgz -C tailscale_bins --strip-components=1
+        mv tailscale_bins/tailscale tailscale_bins/tailscale_arm
+        mv tailscale_bins/tailscaled tailscale_bins/tailscaled_arm
+
+        curl -L "https://pkgs.tailscale.com/stable/tailscale_${RELEASE_VERSION}_arm64.tgz" -o tailscale_arm64.tgz
+        tar -xzf tailscale_arm64.tgz -C tailscale_bins --strip-components=1
+        mv tailscale_bins/tailscale tailscale_bins/tailscale_arm64
+        mv tailscale_bins/tailscaled tailscale_bins/tailscaled_arm64
+
+    # 4. Build each folder, update manifest, and copy .eap files
+    - name: Build all folders
+      run: |
+        mkdir -p build
+        mkdir -p releases
+
+        for folder in */ ; do
+          [[ ! -d "$folder/app" ]] && continue
+          FOLDER_NAME="${folder%/}"  # remove trailing slash
+          echo "Processing folder $FOLDER_NAME"
+
+          # Detect architecture
+          if [[ "$FOLDER_NAME" == arm* ]]; then
+            cp tailscale_bins/tailscale_arm "$folder/app/lib/tailscale"
+            cp tailscale_bins/tailscaled_arm "$folder/app/lib/tailscaled"
+          else
+            cp tailscale_bins/tailscale_arm64 "$folder/app/lib/tailscale"
+            cp tailscale_bins/tailscaled_arm64 "$folder/app/lib/tailscaled"
+          fi
+
+          # Detect variant suffix for .eap naming
+          if [[ "$FOLDER_NAME" == *_ROOT ]]; then
+            VARIANT="_root"
+          elif [[ "$FOLDER_NAME" == *_custom ]]; then
+            VARIANT="_custom"
+          else
+            VARIANT=""
+          fi
+
+          # Update manifest version
+          sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION}\"/" "$folder/app/manifest.json"
+
+          # Docker build
+          TAG_NAME=$(echo "$FOLDER_NAME" | tr '[:upper:]' '[:lower:]' | tr '/ ' '_')  # lowercase and clean
+          echo "Building $TAG_NAME"
+          docker build -f "$folder/Dockerfile" --tag "$TAG_NAME" "$folder"
+
+          # Extract .eap files into build folder
+          EAP_OUTPUT="./build/${TAG_NAME}"
+          mkdir -p "$EAP_OUTPUT"
+          docker cp $(docker create "$TAG_NAME"):/opt/app "$EAP_OUTPUT"
+
+          # Move all .eap files to releases folder, append variant if needed
+          find "$EAP_OUTPUT" -type f -name "*.eap" | while read eap; do
+            BASENAME=$(basename "$eap" .eap)
+            if [[ -n "$VARIANT" ]]; then
+              mv "$eap" "releases/${BASENAME}${VARIANT}.eap"
+            else
+              mv "$eap" "releases/${BASENAME}.eap"
+            fi
+          done
+        done
+
+        # Clean up
+        rm -rf build tailscale_bins *.tgz
+
+    # 5. Commit updated manifests and .eap files directly to main
+    - name: Commit updates to main
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        git add */app/manifest.json releases/*
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update Tailscale to v${RELEASE_VERSION}"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Mo3he/Axis_Cam_Tailscale.git main
+        fi
+
+    # 6. Create GitHub Release with all new .eap files
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ env.RELEASE_VERSION }}
+        name: "Tailscale VPN ${{ env.RELEASE_VERSION }}"
+        files: releases/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
