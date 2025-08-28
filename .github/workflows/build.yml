@@ -1,14 +1,9 @@
 name: Auto Build & Release Tailscale ACAP
 
 on:
-  workflow_dispatch:
-    inputs:
-      force:
-        description: "Force build even if version exists"
-        required: false
-        default: "false"
   schedule:
-    - cron: '0 6 * * *'  # optional: daily at 06:00 UTC
+    - cron: "0 3 * * 1"   # Every Monday at 03:00 UTC
+  workflow_dispatch:
 
 jobs:
   build-and-release:
@@ -63,6 +58,9 @@ jobs:
             cp tailscale_bins/tailscale_arm64 "$folder/app/lib/tailscale"
             cp tailscale_bins/tailscaled_arm64 "$folder/app/lib/tailscaled"
           fi
+
+          # Stage updated binaries for commit
+          git add "$folder/app/lib/tailscale" "$folder/app/lib/tailscaled"
 
           # Detect variant suffix for .eap naming
           if [[ "$FOLDER_NAME" == *_ROOT ]]; then
