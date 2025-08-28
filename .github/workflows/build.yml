@@ -24,6 +24,19 @@ jobs:
         VERSION=${VERSION#v}  # remove leading 'v'
         echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Get current repo version
+      id: current
+      run: |
+        CURRENT=$(jq -r '.version' arm/app/manifest.json)
+        echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_ENV
+        echo "Current repo version: $CURRENT"
+
+    - name: Skip if no new version
+      if: env.RELEASE_VERSION == env.CURRENT_VERSION
+      run: |
+        echo "No new Tailscale release. Skipping build."
+        exit 0
 
     # 3. Download Tailscale binaries
     - name: Download Tailscale binaries
