@@ -32,20 +32,23 @@ jobs:
         echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_ENV
         echo "Current repo version: $CURRENT"
 
-    - name: Compare versions and decide whether to build
+    - name: Compare versions
+      id: compare
       run: |
         echo "Repo version: $CURRENT_VERSION"
         echo "Latest Tailscale version: $RELEASE_VERSION"
 
         if [ "$CURRENT_VERSION" = "$RELEASE_VERSION" ]; then
-          echo "✅ Already up to date with Tailscale $RELEASE_VERSION, skipping build."
-          exit 0
+          echo "build_needed=false" >> $GITHUB_ENV
+          echo "Already up to date. Skipping build."
         else
-          echo "⬆️ New version detected: $RELEASE_VERSION (was $CURRENT_VERSION). Proceeding with build..."
+          echo "build_needed=true" >> $GITHUB_ENV
+          echo "New version detected. Will build."
         fi
-
+          
     # 3. Download Tailscale binaries
     - name: Download Tailscale binaries
+      if: env.build_needed == 'true'
       run: |
         mkdir -p tailscale_bins
         curl -L "https://pkgs.tailscale.com/stable/tailscale_${RELEASE_VERSION}_arm.tgz" -o tailscale_arm.tgz
@@ -60,6 +63,7 @@ jobs:
 
     # 4. Build each folder, update manifest, and copy .eap files
     - name: Build all folders
+      if: env.build_needed == 'true'
       run: |
         mkdir -p build
         mkdir -p releases
@@ -119,6 +123,7 @@ jobs:
 
     # 5. Commit updated manifests and .eap files directly to main
     - name: Commit updates to main
+      if: env.build_needed == 'true'
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -133,6 +138,7 @@ jobs:
 
     # 6. Create GitHub Release with all new .eap files
     - name: Create GitHub Release
+      if: env.build_needed == 'true'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{ env.RELEASE_VERSION }}
