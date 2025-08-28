@@ -2,8 +2,6 @@
 
 This ACAP packages the scripts and files required to install the Tailscale VPN client on Axis Cameras.
 
-Current version 1.86.2
-
 https://tailscale.com/changelog/
 
 The "ROOT" versions require root privileges on the camera and will not work on OS 12 up.
@@ -79,7 +77,7 @@ You will need a tailscale.com account to use the ACAP
 
 ## Updating Tailscale version
 
-The eap files will be updated from time to time and simply installing the new version over the old will update all files.
+The eap files will be auto built and released every Monday if there is a new version and simply installing the new version over the old will update all files.
 
 It's also possible to build and use a locally built image as all necesary files are provided.
 
