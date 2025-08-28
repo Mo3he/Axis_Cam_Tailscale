@@ -32,11 +32,17 @@ jobs:
         echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_ENV
         echo "Current repo version: $CURRENT"
 
-    - name: Skip if no new version
-      if: env.RELEASE_VERSION == env.CURRENT_VERSION
+    - name: Compare versions and decide whether to build
       run: |
-        echo "No new Tailscale release. Skipping build."
-        exit 0
+        echo "Repo version: $CURRENT_VERSION"
+        echo "Latest Tailscale version: $RELEASE_VERSION"
+
+        if [ "$CURRENT_VERSION" = "$RELEASE_VERSION" ]; then
+          echo "✅ Already up to date with Tailscale $RELEASE_VERSION, skipping build."
+          exit 0
+        else
+          echo "⬆️ New version detected: $RELEASE_VERSION (was $CURRENT_VERSION). Proceeding with build..."
+        fi
 
     # 3. Download Tailscale binaries
     - name: Download Tailscale binaries
