@@ -28,7 +28,7 @@ jobs:
     - name: Get current repo version
       id: current
       run: |
-        CURRENT=$(jq -r '.version' arm/app/manifest.json)
+        CURRENT=$(find . -name manifest.json -exec jq -r '.version' {} \; | head -n1)
         echo "CURRENT_VERSION=$CURRENT" >> $GITHUB_ENV
         echo "Current repo version: $CURRENT"
 
