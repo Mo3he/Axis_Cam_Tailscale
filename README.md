@@ -2,8 +2,6 @@
 
 This ACAP packages the scripts and files required to install the Tailscale VPN client on Axis Cameras.
 
-https://tailscale.com/changelog/
-
 The "ROOT" versions require root privileges on the camera and will not work on OS 12 up.
 
 If you like my work and want to help me to keep maintaining it, a sponsor would be amazing, every bit helps.
