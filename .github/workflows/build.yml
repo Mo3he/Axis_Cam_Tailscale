@@ -66,6 +66,7 @@ jobs:
       if: env.build_needed == 'true'
       run: |
         mkdir -p build
+        rm -rf releases
         mkdir -p releases
 
         for folder in */ ; do
