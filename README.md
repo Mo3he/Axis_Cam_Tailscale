@@ -4,7 +4,7 @@ This ACAP packages the scripts and files required to install the Tailscale VPN c
 
 The "ROOT" versions require root privileges on the camera and will not work on OS 12 up.
 
-You can download the latest ACAP's from the Releases page [HERE](https://github.com/Mo3he/Axis_Cam_Tailscale/releases)
+You can download the latest ACAP's from the [Releases](https://github.com/Mo3he/Axis_Cam_Tailscale/releases) page.
 
 If you like my work and want to help me to keep maintaining it, a sponsor would be amazing, every bit helps.
 
