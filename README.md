@@ -79,7 +79,7 @@ docker cp $(docker create <package_name>):/opt/app ./build
 
 ## 🧪 Testers Needed
 
-A new **custom mode** is available:
+A new **custom** version is available:
 - Allows setting a custom server and auth key (for [Headscale](https://headscale.net/)).  
 - Go to **Settings (⋮ → Settings)** to add your details.   
 
