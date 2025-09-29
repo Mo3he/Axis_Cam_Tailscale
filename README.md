@@ -1,107 +1,144 @@
-# The Tailscale installer ACAP
+# Tailscale Installer ACAP for Axis Cameras
 
-This ACAP packages the scripts and files required to install the Tailscale VPN client on Axis Cameras.
+This repository contains an **ACAP package** that installs the [Tailscale VPN client](https://tailscale.com/) on Axis cameras.
 
-The "ROOT" versions require root privileges on the camera and will not work on OS 12 up.
+- ✅ Secure remote access to cameras  
+- ✅ Easy to install via EAP package  
+- ✅ Works on **Axis OS 12+** (non-root version)  
+- ✅ Based on **WireGuard VPN** technology  
 
-You can download the latest ACAP's from the [Releases](https://github.com/Mo3he/Axis_Cam_Tailscale/releases) page.
+[![Releases](https://img.shields.io/github/v/release/Mo3he/Axis_Cam_Tailscale)](https://github.com/Mo3he/Axis_Cam_Tailscale/releases)  
+[![License](https://img.shields.io/github/license/Mo3he/Axis_Cam_Tailscale)](LICENSE)  
+[![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-lightgrey?logo=github)](https://github.com/sponsors/Mo3he)
 
-If you like my work and want to help me to keep maintaining it, a sponsor would be amazing, every bit helps.
+---
 
-[:dollar: Sponsor](https://github.com/sponsors/Mo3he)
+## 📑 Table of Contents
 
-## Testers needed
+- [📥 Installation](#-installation)  
+- [🚀 Usage](#-usage)  
+- [🔄 Updating Tailscale](#-updating-tailscale)  
+- [🧪 Testers Needed](#-testers-needed)  
+- [🎉 Good News](#-good-news)  
+- [🎯 Purpose](#-purpose)  
+- [🔗 Useful Links](#-useful-links)  
+- [🖥️ Compatibility](#️-compatibility)  
+- [⭐ Star History](#-star-history)  
+- [💖 Support](#-support)  
 
-I have added a new "custom" version which allows you to set a custom server and auth key for use of headscale.
+---
 
-Click the three dots then "settings" to add your details.
-If you get a tls error restart the app.
+## 📥 Installation
 
-Please give it a try and let me know if it works well or if you have issues.
+The recommended way is to use the **prebuilt `.eap` file** from the [Releases page](https://github.com/Mo3he/Axis_Cam_Tailscale/releases).
 
-## Good news, everyone!
+1. Log into your Axis camera.  
+2. Go to **Apps → Add App**.  
+3. Upload the `.eap` file.  
 
-We have found a way to run the Tailscale ACAP without root privileges allowing it to run on Axis OS 12.
+Once installed:
+- Start the app. 
+- Click **Open** to view logs and get your Tailscale authentication URL.  
+- On uninstall, all changes/files are removed.  
 
-Please note this new version runs in user space networking mode and therefore has some limitations, most notably the camera will not be able to connect out to other Tailscale nodes.
-This does not affect the normal use case of using Tailscale to connect to the camera.
-If you require full functionality, please do not upgrade to Axis OS 12 and use the version marked "ROOT".
+> ⚠️ You’ll need a [Tailscale account](https://tailscale.com/) to authenticate.
 
-The changes are implemented from version 1.68.1 of the acap.
+---
 
-Thank you for your continued support.
+## 🚀 Usage
 
-## Purpose
+- Runs a startup script to set permissions and launch Tailscale.  
+- View logs via the **Open** button in the app.  
+- Authenticate using the provided URL.  
 
-Adding a VPN client directly to the camera allows secure remote access to the device without requiring any other equipment or network configuration.
-Tailscale achieves this in a secure, simple to setup and easy to use way.
-Tailscale is based on WireGuard VPN tunneling technology.
+---
 
-https://tailscale.com/blog/how-tailscale-works/
+## 🔄 Updating Tailscale
 
-## Links
+- New `.eap` files are auto-built and released **weekly** (if a new Tailscale version is available).  
+- To update, simply install the new `.eap` over the existing one.  
 
-https://tailscale.com/
+### Manual update (advanced)
 
-https://github.com/tailscale/tailscale 
+Replace the binaries in the `lib/` folder:
+- `tailscale`
+- `tailscaled`
 
-https://www.wireguard.com/
+Download the latest versions: [Tailscale static builds](https://pkgs.tailscale.com/stable/#static)
 
-https://www.axis.com/
+#### Build locally
 
-## Compatibility
+From the main directory of the version you want (`arm` / `aarch64`):
 
-The Tailscale ACAP is compatable with Axis cameras with arm and aarch64 based Soc's.
-
-```
-curl --anyauth "*" -u <username>:<password> <device ip>/axis-cgi/basicdeviceinfo.cgi --data "{\"apiVersion\":\"1.0\",\"context\":\"Client defined request ID\",\"method\":\"getAllProperties\"}"
-```
-
-where `<device ip>` is the IP address of the Axis device, `<username>` is the root username and `<password>` is the root password. Please
-note that you need to enclose your password with quotes (`'`) if it contains special characters.
-
-## Installing
-
-The recommended way to install this ACAP is to use the pre built eap file.
-Go to "Apps" on the camera and click "Add app".
-
-
-## Using the Tailscale ACAP
-
-The Tailscale ACAP will run a script on startup that sets the required permissions and starts the service and app.
-Once started click "Open" to see the output of the logs for further instructions and obtain the authetication URL.
-
-When uninstalling the ACAP, all changes and files are removed from the camera.
-
-You will need a tailscale.com account to use the ACAP
-
-## Updating Tailscale version
-
-The eap files will be auto built and released every Monday if there is a new version and simply installing the new version over the old will update all files.
-
-It's also possible to build and use a locally built image as all necesary files are provided.
-
-Replace binaries "tailscale" and "tailscaled" in lib folder with new versions.
-Make sure you use the files for the correct Soc.
-
-Latest versions can be found at 
-
-https://pkgs.tailscale.com/stable/#static
-
-
-To build, 
-From main directory of the version you want (arm/aarch64)
-
-```
-docker build --tag <package name> . 
-```
-```
-docker cp $(docker create <package name>):/opt/app ./build 
+```bash
+docker build --tag <package_name> .
+docker cp $(docker create <package_name>):/opt/app ./build
 ```
 
+---
 
-## Star History
+## 🧪 Testers Needed
+
+A new **custom mode** is available:
+- Allows setting a custom server and auth key (for [Headscale](https://headscale.net/)).  
+- Go to **Settings (⋮ → Settings)** to add your details.   
+
+Please give it a try and share your feedback!
+
+---
+
+## 🎉 Good News
+
+Tailscale ACAP can now run **without root privileges**, making it compatible with **Axis OS 12+**.  
+
+- Runs in **user space networking mode**.  
+- Limitation: the camera cannot initiate connections to other Tailscale nodes (but can still be accessed).  
+
+For **full networking features**, use the **ROOT** version on Axis OS < 12.
+
+---
+
+## 🎯 Purpose
+
+Adding a VPN client directly to the camera enables:  
+- Secure remote access without additional hardware or complex network configuration.  
+- Easy setup through Tailscale’s lightweight WireGuard-based tunnel.  
+
+🔗 Learn more: [How Tailscale Works](https://tailscale.com/blog/how-tailscale-works/)
+
+---
+
+## 🔗 Useful Links
+
+- [Tailscale](https://tailscale.com/)  
+- [Tailscale GitHub](https://github.com/tailscale/tailscale)  
+- [WireGuard](https://www.wireguard.com/)  
+- [Axis Communications](https://www.axis.com/)  
+
+---
+
+## 🖥️ Compatibility
+
+The Tailscale ACAP is compatible with Axis cameras with **ARM** and **AARCH64**-based SoCs.
+
+You can verify your device details using the following command:
+
+```bash
+curl --anyauth "*" -u <username>:<password> <device_ip>/axis-cgi/basicdeviceinfo.cgi --data '{"apiVersion":"1.0","context":"Client defined request ID","method":"getAllProperties"}'
+```
+
+> Replace `<device_ip>`, `<username>`, and `<password>` with your device credentials.  
+> Enclose your password in quotes `' '` if it contains special characters.
+
+---
+
+## ⭐ Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Mo3he/Axis_Cam_Tailscale&type=Date)](https://www.star-history.com/#Mo3he/Axis_Cam_Tailscale&Date)
 
+---
 
+## 💖 Support
+
+If you like this project and want to support future updates:  
+👉 [Sponsor Me](https://github.com/sponsors/Mo3he)
