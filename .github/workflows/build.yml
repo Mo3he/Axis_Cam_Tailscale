@@ -39,7 +39,7 @@ jobs:
         echo "Latest Tailscale version: $RELEASE_VERSION"
 
         if [ "$CURRENT_VERSION" = "$RELEASE_VERSION" ]; then
-          echo "build_needed=false" >> $GITHUB_ENV
+          echo "build_needed=true" >> $GITHUB_ENV
           echo "Already up to date. Skipping build."
         else
           echo "build_needed=true" >> $GITHUB_ENV
