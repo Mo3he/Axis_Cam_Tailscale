@@ -33,7 +33,7 @@ fi
 
 # Start tailscaled
 logger -t "tailscale_script" "Starting tailscaled daemon"
-$TAILSCALED_PATH --tun=userspace-networking --socket=$SOCKET_PATH &
+$TAILSCALED_PATH --socks5-server=localhost:1055 --tun=userspace-networking --socket=$SOCKET_PATH &
 TAILSCALED_PID=$!
 
 # Wait for tailscaled to initialize
