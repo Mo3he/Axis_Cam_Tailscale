@@ -92,7 +92,6 @@ Please give it a try and share your feedback!
 Tailscale ACAP can now run **without root privileges**, making it compatible with **Axis OS 12+**.  
 
 - Runs in **user space networking mode**.  
-- Limitation: the camera cannot initiate connections to other Tailscale nodes (but can still be accessed).  
 
 For **full networking features**, use the **ROOT** version on Axis OS < 12.
 
