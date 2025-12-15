@@ -1,2 +1,10 @@
 **/.DS_Store
 **/build
+
+# Do not track release artifacts
+releases/
+build/
+
+# Do not track downloaded Tailscale tarballs and temp bins
+tailscale_bins/
+*.tgz
