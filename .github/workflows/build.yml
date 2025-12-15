@@ -20,8 +20,28 @@ jobs:
     - name: Get latest Tailscale version
       id: tailscale_version
       run: |
-        VERSION=$(curl -s https://api.github.com/repos/tailscale/tailscale/releases/latest | jq -r .tag_name)
-        VERSION=${VERSION#v}  # remove leading 'v'
+        # 1. Start from GitHub latest
+        GH_TAG=$(curl -s https://api.github.com/repos/tailscale/tailscale/releases/latest | jq -r .tag_name)
+        GH_VERSION=${GH_TAG#v}
+
+        echo "GitHub latest: $GH_VERSION"
+
+        # 2. See if static ARM build exists for that version
+        if curl -sfI "https://pkgs.tailscale.com/stable/tailscale_${GH_VERSION}_arm.tgz" > /dev/null; then
+          VERSION="$GH_VERSION"
+          echo "Using GitHub latest (has ARM package): $VERSION"
+        else
+          echo "No ARM package for $GH_VERSION, falling back to latest version on pkgs.tailscale.com"
+          # 3. Derive latest version that actually has an ARM tarball
+          VERSION=$(
+            curl -s https://pkgs.tailscale.com/stable/ \
+            | grep -o 'tailscale_[0-9.]*_arm\.tgz' \
+            | sed -E 's/^tailscale_([0-9.]+)_arm\.tgz$/\1/' \
+            | sort -V | tail -n1
+          )
+          echo "Fallback version: $VERSION"
+        fi
+
         echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
         echo "version=$VERSION" >> $GITHUB_OUTPUT
     
