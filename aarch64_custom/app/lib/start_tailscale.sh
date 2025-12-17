@@ -5,10 +5,15 @@
 pkill -f tailscaled || true
 
 # Simple script to start Tailscale with custom configuration
-CONFIG_FILE="/usr/local/packages/serverconfig/config.txt"
-TAILSCALED_PATH="/usr/local/packages/serverconfig/lib/tailscaled"
-TAILSCALE_PATH="/usr/local/packages/serverconfig/lib/tailscale"
-SOCKET_PATH="/usr/local/packages/serverconfig/tailscaled.sock"
+APP_DIR="/usr/local/packages/serverconfig"
+STATE_DIR="$APP_DIR/localdata"
+CONFIG_FILE="$STATE_DIR/config.txt"
+TAILSCALED_PATH="$APP_DIR/lib/tailscaled"
+TAILSCALE_PATH="$APP_DIR/lib/tailscale"
+SOCKET_PATH="$STATE_DIR/tailscaled.sock"
+
+# Create localdata directory if it doesn't exist
+mkdir -p "$STATE_DIR"
 
 # Log to syslog
 logger -t "tailscale_script" "Starting Tailscale VPN service"
@@ -31,9 +36,13 @@ if [ -f "$CONFIG_FILE" ]; then
     done < "$CONFIG_FILE"
 fi
 
-# Start tailscaled
+# Start tailscaled with state stored in localdata
 logger -t "tailscale_script" "Starting tailscaled daemon"
-$TAILSCALED_PATH --socks5-server=localhost:1055 --tun=userspace-networking --socket=$SOCKET_PATH &
+$TAILSCALED_PATH \
+    --state="$STATE_DIR/tailscaled.state" \
+    --socket=$SOCKET_PATH \
+    --socks5-server=localhost:1055 \
+    --tun=userspace-networking &
 TAILSCALED_PID=$!
 
 # Wait for tailscaled to initialize

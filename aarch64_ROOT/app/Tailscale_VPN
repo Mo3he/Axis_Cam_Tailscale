@@ -1,10 +1,28 @@
 #!/bin/sh
 
-    echo "Starting Service"
-    chmod 777 /usr/local/packages/Tailscale_VPN/lib/tailscale
-    chmod 777 /usr/local/packages/Tailscale_VPN/lib/tailscaled
-    /usr/local/packages/Tailscale_VPN/lib/tailscaled &
-    echo "Service Started"
-    echo "Scroll to Bottom for link"
-    /usr/local/packages/Tailscale_VPN/lib/tailscale up --accept-routes
-    wait
+echo "Starting Service"
+
+# Define paths
+APP_DIR="/usr/local/packages/Tailscale_VPN"
+STATE_DIR="$APP_DIR/localdata"
+
+# Create localdata directory if it doesn't exist
+mkdir -p "$STATE_DIR"
+
+# Set permissions
+chmod 777 "$APP_DIR/lib/tailscale"
+chmod 777 "$APP_DIR/lib/tailscaled"
+
+# Start tailscaled with state stored in localdata
+"$APP_DIR/lib/tailscaled" \
+    --state="$STATE_DIR/tailscaled.state" \
+    --socket="$STATE_DIR/tailscaled.sock" &
+
+echo "Service Started"
+sleep 2
+echo "Scroll to Bottom for link"
+
+# Run tailscale up with the socket in localdata
+"$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" up --accept-routes
+
+wait

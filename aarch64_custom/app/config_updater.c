@@ -17,7 +17,9 @@
 #include <errno.h>
 
 #define APP_NAME "serverconfig"
-#define CONFIG_FILE "/usr/local/packages/serverconfig/config.txt"
+#define APP_DIR "/usr/local/packages/serverconfig"
+#define STATE_DIR APP_DIR "/localdata"
+#define CONFIG_FILE STATE_DIR "/config.txt"
 #define SCRIPT_PATH "/usr/local/packages/serverconfig/start_tailscale.sh"
 #define SCRIPT_SOURCE "/usr/local/packages/serverconfig/lib/start_tailscale.sh"
 
@@ -25,6 +27,19 @@ static gboolean signal_handler(gpointer loop) {
     g_main_loop_quit((GMainLoop*)loop);
     syslog(LOG_INFO, "Configuration updater stopping.");
     return G_SOURCE_REMOVE;
+}
+
+// Create localdata directory
+static void ensure_localdata_exists(void) {
+    struct stat st = {0};
+    
+    if (stat(STATE_DIR, &st) == -1) {
+        if (mkdir(STATE_DIR, 0755) != 0) {
+            syslog(LOG_ERR, "Failed to create localdata directory: %s", strerror(errno));
+        } else {
+            syslog(LOG_INFO, "Created localdata directory: %s", STATE_DIR);
+        }
+    }
 }
 
 // Copy script from lib folder to main directory
@@ -109,6 +124,9 @@ static void update_config_file(AXParameter* handle) {
     gchar* key_value = NULL;
     FILE* file;
     
+    // Ensure localdata directory exists
+    ensure_localdata_exists();
+    
     // Get parameter values
     if (!ax_parameter_get(handle, "CustomServer", &server_value, &error)) {
         syslog(LOG_ERR, "Failed to get CustomServer: %s", 
@@ -125,7 +143,7 @@ static void update_config_file(AXParameter* handle) {
         key_value = g_strdup("");
     }
     
-    // Write to config file
+    // Write to config file in localdata
     file = fopen(CONFIG_FILE, "w");
     if (file) {
         fprintf(file, "custom_server=%s\n", server_value ? server_value : "");
@@ -135,12 +153,12 @@ static void update_config_file(AXParameter* handle) {
         // Set permissions to ensure the file is readable
         chmod(CONFIG_FILE, 0644);
         
-        syslog(LOG_INFO, "Updated configuration file: custom_server=%s", 
+        syslog(LOG_INFO, "Updated configuration file in local custom_server=%s", 
                server_value ? server_value : "");
-        syslog(LOG_INFO, "Updated configuration file: auth_key=%s", 
+        syslog(LOG_INFO, "Updated configuration file in local auth_key=%s", 
                key_value && strlen(key_value) > 0 ? "(set)" : "(empty)");
     } else {
-        syslog(LOG_ERR, "Failed to open config file for writing");
+        syslog(LOG_ERR, "Failed to open config file for writing: %s", strerror(errno));
     }
     
     // Clean up
@@ -185,6 +203,9 @@ int main(void) {
         exit(1);
     }
 
+    // Ensure localdata directory exists
+    ensure_localdata_exists();
+    
     // Ensure script is copied from lib folder
     copy_script_file();
 
