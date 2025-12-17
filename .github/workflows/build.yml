@@ -2,7 +2,7 @@ name: Auto Build & Release Tailscale ACAP
 
 on:
   schedule:
-    - cron: "0 3 * * 1"   # Every Monday at 03:00 UTC
+    - cron: "0 0 * * *"   # Every Monday at 03:00 UTC
   workflow_dispatch:
 
 jobs:
