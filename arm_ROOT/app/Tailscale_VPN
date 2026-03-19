@@ -1,28 +1,28 @@
 #!/bin/sh
 
-echo "Starting Service"
-
-# Define paths
 APP_DIR="/usr/local/packages/Tailscale_VPN"
 STATE_DIR="$APP_DIR/localdata"
 
-# Create localdata directory if it doesn't exist
+logger -t "Tailscale_VPN" "Starting Tailscale VPN service (root mode)"
+
 mkdir -p "$STATE_DIR"
+chmod 755 "$APP_DIR/lib/tailscale"
+chmod 755 "$APP_DIR/lib/tailscaled"
 
-# Set permissions
-chmod 777 "$APP_DIR/lib/tailscale"
-chmod 777 "$APP_DIR/lib/tailscaled"
+# Kill any leftover daemon from a previous run
+killall tailscaled 2>/dev/null || true
 
-# Start tailscaled with state stored in localdata
+logger -t "Tailscale_VPN" "Starting tailscaled daemon"
 "$APP_DIR/lib/tailscaled" \
     --state="$STATE_DIR/tailscaled.state" \
     --socket="$STATE_DIR/tailscaled.sock" &
+TAILSCALED_PID=$!
 
-echo "Service Started"
 sleep 2
-echo "Scroll to Bottom for link"
 
-# Run tailscale up with the socket in localdata
+logger -t "Tailscale_VPN" "Connecting to Tailscale network (scroll to bottom for auth URL if prompted)"
 "$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" up --accept-routes
 
-wait
+logger -t "Tailscale_VPN" "Tailscale VPN is running"
+wait $TAILSCALED_PID
+logger -t "Tailscale_VPN" "tailscaled exited"

@@ -1,19 +1,258 @@
 <!DOCTYPE html>
-<html>
-<body>
+<html lang="en">
 <head>
-    <h1 style="color:red;">Scroll to the bottom to find authentication URL</h1>
-    <script>
-        function refreshIFrame() {
-            var x = document.getElementById("*Your_iframe_id*");
-            x.contentWindow.location.reload();
-            var t = setTimeout(refreshIFrame, 5000);
+    <meta charset="UTF-8">
+    <title>Tailscale VPN</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #f5f6f8;
+            color: #1a1a2e;
+            padding: 20px;
+            font-size: 14px;
         }
-    </script>
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        header svg { flex-shrink: 0; }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+        }
+
+        /* ── Status row ── */
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .dot.connected    { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
+        .dot.connecting   { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
+        .dot.disconnected { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.2); }
+
+        .status-label {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* ── Auth URL block ── */
+        #auth-block {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        #auth-block p {
+            font-size: 12px;
+            color: #92400e;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        #auth-link {
+            display: inline-block;
+            background: #0166ff;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        #auth-link:hover { background: #0052cc; }
+
+        #auth-url-text {
+            display: block;
+            font-size: 11px;
+            color: #888;
+            word-break: break-all;
+            font-family: monospace;
+        }
+
+        /* ── Info grid (connected state) ── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 6px 16px;
+            font-size: 13px;
+        }
+
+        .info-grid .label { color: #888; }
+        .info-grid .value { font-weight: 500; font-family: monospace; }
+
+        /* ── Log section ── */
+        .log-header {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        #log-frame {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #e8e8ec;
+            border-radius: 6px;
+            display: block;
+        }
+    </style>
 </head>
-<body onload="refreshIFrame()"> 
-    <iframe id="*Your_iframe_id*" src= "/axis-cgi/admin/systemlog.cgi?appname=Tailscale_VPN" style="height:600px;width:100%;border: none;" ></iframe>
-</body>
+<body>
+
+<header>
+    <!-- Tailscale wordmark icon -->
+    <svg width="28" height="28" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="128" height="128" rx="28" fill="#0166FF"/>
+        <circle cx="64" cy="64" r="18" fill="white"/>
+        <circle cx="64" cy="22" r="10" fill="white"/>
+        <circle cx="64" cy="106" r="10" fill="white"/>
+        <circle cx="22" cy="64" r="10" fill="white"/>
+        <circle cx="106" cy="64" r="10" fill="white"/>
+        <circle cx="35" cy="35" r="10" fill="white"/>
+        <circle cx="93" cy="35" r="10" fill="white"/>
+        <circle cx="35" cy="93" r="10" fill="white"/>
+        <circle cx="93" cy="93" r="10" fill="white"/>
+    </svg>
+    <h1>Tailscale VPN</h1>
+</header>
+
+<!-- Status card -->
+<div class="card">
+    <div class="status-row">
+        <span id="dot" class="dot connecting"></span>
+        <span id="status-label" class="status-label">Checking&hellip;</span>
+    </div>
+
+    <!-- Shown when waiting for auth -->
+    <div id="auth-block" style="display:none;">
+        <p>Open this link in a browser to authenticate this device:</p>
+        <a id="auth-link" href="#" target="_blank">Authenticate &rarr;</a>
+        <span id="auth-url-text"></span>
+    </div>
+
+    <!-- Shown when connected -->
+    <div id="info-block" style="display:none;" class="info-grid">
+        <span class="label">Tailscale IP</span><span class="value" id="ts-ip">&mdash;</span>
+        <span class="label">Node</span><span class="value" id="ts-node">&mdash;</span>
+    </div>
+</div>
+
+<!-- Log card -->
+<div class="card">
+    <div class="log-header">Service Log</div>
+    <iframe id="log-frame" src="/axis-cgi/admin/systemlog.cgi?appname=Tailscale_VPN"></iframe>
+</div>
+
+<script>
+    var LOG = '/axis-cgi/admin/systemlog.cgi?appname=Tailscale_VPN';
+
+    function parse(txt) {
+        // Use the LAST occurrence of each pattern so stale log entries don't win
+        var allUrls = txt.match(/https:\/\/login\.tailscale\.com\/[^\s<"\t]+/g) || [];
+        var latestUrl = allUrls.length ? allUrls[allUrls.length - 1] : null;
+
+        // Tailscale IP — 100.x.x.x range
+        var allIPs = txt.match(/\b100\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g) || [];
+        var tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
+
+        // Node name from "Logged into tailnet" line or "acap-" username pattern
+        var nodeMatch = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/);
+        var node = nodeMatch ? nodeMatch[1] : null;
+
+        // Determine state from the LAST state-transition log line
+        var stateLines = txt.match(/Switching ipn state [^\n]+/g) || [];
+        var lastState = stateLines.length ? stateLines[stateLines.length - 1] : '';
+        var isRunning = /-> Running/.test(lastState) || /Logged into tailnet/.test(txt);
+
+        if (isRunning) {
+            return { state: 'connected', url: null, ip: tsIP, node: node };
+        }
+        if (latestUrl) {
+            return { state: 'connecting', url: latestUrl, ip: null, node: null };
+        }
+        if (/Starting Tailscale|tailscaled.*start|logtail started/.test(txt)) {
+            return { state: 'connecting', url: null, ip: null, node: null };
+        }
+        return { state: 'disconnected', url: null, ip: null, node: null };
+    }
+
+    function render(r) {
+        var dot   = document.getElementById('dot');
+        var label = document.getElementById('status-label');
+        var auth  = document.getElementById('auth-block');
+        var info  = document.getElementById('info-block');
+
+        dot.className = 'dot ' + r.state;
+
+        var labels = { connected: 'Connected', connecting: 'Connecting\u2026', disconnected: 'Stopped' };
+        label.textContent = labels[r.state];
+
+        // Auth block
+        if (r.state === 'connecting' && r.url) {
+            document.getElementById('auth-link').href = r.url;
+            document.getElementById('auth-url-text').textContent = r.url;
+            auth.style.display = '';
+        } else {
+            auth.style.display = 'none';
+        }
+
+        // Info block
+        if (r.state === 'connected') {
+            document.getElementById('ts-ip').textContent   = r.ip   || '\u2014';
+            document.getElementById('ts-node').textContent = r.node || '\u2014';
+            info.style.display = '';
+        } else {
+            info.style.display = 'none';
+        }
+    }
+
+    function refresh() {
+        // Reload the log iframe (same-origin)
+        var frame = document.getElementById('log-frame');
+        try { frame.contentWindow.location.reload(); } catch(e) {}
+
+        fetch(LOG, { cache: 'no-store', credentials: 'same-origin' })
+            .then(function(r) { return r.text(); })
+            .then(function(txt) { render(parse(txt)); })
+            .catch(function() {
+                document.getElementById('status-label').textContent = 'Unknown';
+            });
+    }
+
+    refresh();
+    setInterval(refresh, 5000);
+</script>
 
 </body>
 </html>

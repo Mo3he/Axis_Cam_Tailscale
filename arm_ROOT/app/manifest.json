@@ -11,7 +11,7 @@
               "username": "root"
           },
             "vendorUrl": "https://www.tailscale.com",
-            "runMode": "once",
+            "runMode": "respawn",
             "version": "1.96.2",
             "architecture": "armv7hf"
         },

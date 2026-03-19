@@ -7,7 +7,7 @@
             "vendor": "Tailscale - Packaged by Mo3he",
             "embeddedSdkVersion": "3.0",
             "vendorUrl": "https://www.tailscale.com",
-            "runMode": "once",
+            "runMode": "respawn",
             "version": "1.96.2",
             "architecture": "armv7hf"
         },

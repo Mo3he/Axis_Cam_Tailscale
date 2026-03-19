@@ -1,0 +1,30 @@
+{
+    "schemaVersion": "1.7.3",
+    "acapPackageConf": {
+        "setup": {
+            "friendlyName": "Tailscale VPN",
+            "appName": "serverconfig",
+            "vendor": "Tailscale - Packaged by Mo3he",
+            "embeddedSdkVersion": "3.0",
+            "vendorUrl": "https://www.tailscale.com",
+            "runMode": "respawn",
+            "version": "1.96.2",
+            "architecture": "armv7hf"
+        },
+        "configuration": {
+            "settingPage": "index.html",
+            "paramConfig": [
+                {
+                    "name": "CustomServer",
+                    "default": "",
+                    "type": "string"
+                },
+                {
+                    "name": "AuthKey",
+                    "default": "",
+                    "type": "string"
+                }
+            ]
+        }
+    }
+}

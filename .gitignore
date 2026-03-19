@@ -8,3 +8,7 @@ build/
 # Do not track downloaded Tailscale tarballs and temp bins
 tailscale_bins/
 *.tgz
+
+# Tailscale binaries - downloaded fresh by CI at build time, not stored in git
+*/app/lib/tailscale
+*/app/lib/tailscaled

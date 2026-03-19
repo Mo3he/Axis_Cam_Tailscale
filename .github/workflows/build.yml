@@ -103,9 +103,6 @@ jobs:
             cp tailscale_bins/tailscaled_arm64 "$folder/app/lib/tailscaled"
           fi
 
-          # Stage updated binaries for commit
-          git add "$folder/app/lib/tailscale" "$folder/app/lib/tailscaled"
-
           # Detect variant suffix for .eap naming
           if [[ "$FOLDER_NAME" == *_ROOT ]]; then
             VARIANT="_root"
