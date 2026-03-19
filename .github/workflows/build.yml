@@ -57,8 +57,12 @@ jobs:
       run: |
         echo "Repo version: $CURRENT_VERSION"
         echo "Latest Tailscale version: $RELEASE_VERSION"
+        echo "Trigger: ${{ github.event_name }}"
 
-        if [ "$CURRENT_VERSION" = "$RELEASE_VERSION" ]; then
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "build_needed=true" >> $GITHUB_ENV
+          echo "Manual trigger — building regardless of version."
+        elif [ "$CURRENT_VERSION" = "$RELEASE_VERSION" ]; then
           echo "build_needed=false" >> $GITHUB_ENV
           echo "Already up to date. Skipping build."
         else
