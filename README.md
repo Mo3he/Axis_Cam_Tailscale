@@ -9,7 +9,9 @@ This repository contains an **ACAP package** that installs the [Tailscale VPN cl
 
 [![Releases](https://img.shields.io/github/v/release/Mo3he/Axis_Cam_Tailscale)](https://github.com/Mo3he/Axis_Cam_Tailscale/releases)  
 [![License](https://img.shields.io/github/license/Mo3he/Axis_Cam_Tailscale)](LICENSE)  
-[![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-lightgrey?logo=github)](https://github.com/sponsors/Mo3he)
+![Total Downloads](https://img.shields.io/github/downloads/Mo3he/Axis_Cam_Tailscale/total?style=flat&label=Downloads&color=blue)  
+[![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-lightgrey?logo=github)](https://github.com/sponsors/Mo3he)  
+
 
 ---
 
