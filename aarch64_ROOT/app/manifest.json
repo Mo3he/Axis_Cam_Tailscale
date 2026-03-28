@@ -12,7 +12,7 @@
           },
             "vendorUrl": "https://www.tailscale.com",
             "runMode": "respawn",
-            "version": "1.96.2",
+            "version": "1.96.4",
             "architecture": "aarch64"
         },
         "configuration": {
