@@ -32,7 +32,7 @@ This repository contains an **ACAP package** that installs the [Tailscale VPN cl
 
 ## 📥 Installation
 
-The recommended way is to use the **prebuilt `.eap` file** from the [Releases page](https://github.com/Mo3he/Axis_Cam_Tailscale/releases).
+Get the **prebuilt `.eap` file** from the [Releases page](https://github.com/Mo3he/Axis_Cam_Tailscale/releases).
 
 1. Log into your Axis camera.  
 2. Go to **Apps → Add App**.  
