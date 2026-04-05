@@ -1,6 +1,6 @@
 # Tailscale ACAP for Axis Cameras
 
-This repository contains an **ACAP package** that installs the [Tailscale VPN client](https://tailscale.com/) on Axis cameras.
+This repository provides an **ACAP package** that installs the [Tailscale VPN client](https://tailscale.com/) on Axis cameras.
 
 - ✅ Secure remote access to cameras  
 - ✅ Easy to install via EAP package  
