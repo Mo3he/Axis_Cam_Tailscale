@@ -141,5 +141,5 @@ curl --anyauth "*" -u <username>:<password> <device_ip>/axis-cgi/basicdeviceinfo
 
 ## 💖 Support
 
-If you like this project and want to support future updates:  
+If you like this project and want to support my work:  
 👉 [Sponsor Me](https://github.com/sponsors/Mo3he)
