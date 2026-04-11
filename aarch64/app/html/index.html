@@ -359,6 +359,9 @@
             <div class="info-value" id="ts-version">-</div>
         </div>
     </div>
+    <div style="margin-top:14px;text-align:right;">
+        <button id="check-update-btn" class="log-toggle">Check for Updates</button>
+    </div>
 </div>
 
 <!-- Logs -->
@@ -437,16 +440,35 @@
             tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
         }
 
-        var nodeMatch = txt.match(/popBrowserAuthNow\("([^"]+)"\)/);
-        if (!nodeMatch) nodeMatch = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/);
-        var node = nodeMatch ? nodeMatch[1] : null;
+        var nodeMatches = txt.match(/popBrowserAuthNow\("([^"]+)"\)/g);
+        if (!nodeMatches) nodeMatches = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/g);
+        var node = null;
+        if (nodeMatches) {
+            var nm = nodeMatches[nodeMatches.length - 1].match(/"([^"]+)"/);
+            if (nm) node = nm[1];
+        }
+        if (!node) {
+            var hostMatches = txt.match(/^\S+\s+(\S+)\s+\[\s*INFO/gm);
+            if (hostMatches) {
+                var hm = hostMatches[hostMatches.length - 1].match(/^\S+\s+(\S+)/);
+                if (hm) node = hm[1];
+            }
+        }
 
-        var loginMatch = txt.match(/active login:\s+(\S+)/);
-        var tailnet = loginMatch ? loginMatch[1] : null;
+        var loginMatches = txt.match(/active login:\s+\S+/g);
+        var tailnet = null;
+        if (loginMatches) {
+            var lm = loginMatches[loginMatches.length - 1].match(/active login:\s+(\S+)/);
+            if (lm) tailnet = lm[1];
+        }
 
-        var versionMatch = txt.match(/Program starting: v(\d+\.\d+\.\d+)/);
-        if (!versionMatch) versionMatch = txt.match(/tailscaled[\s_](\d+\.\d+\.\d+)/);
-        var version = versionMatch ? versionMatch[1] : null;
+        var versionMatches = txt.match(/Program starting: v(\d+\.\d+\.\d+)/g);
+        var version = null;
+        if (versionMatches) {
+            var last = versionMatches[versionMatches.length - 1];
+            var vm = last.match(/v(\d+\.\d+\.\d+)/);
+            if (vm) version = vm[1];
+        }
 
         var stateLines = txt.match(/Switching ipn state [^\n]+/g) || [];
         var lastState = stateLines.length ? stateLines[stateLines.length - 1] : '';
@@ -542,10 +564,15 @@
     setInterval(refresh, 5000);
 
     // Check for updates from GitHub
-    var latestChecked = false;
-    function checkForUpdate(currentVersion) {
-        if (!currentVersion || latestChecked) return;
-        latestChecked = true;
+    var installedVersion = null;
+    var autoChecked = false;
+    function checkForUpdate(currentVersion, manual) {
+        if (!currentVersion) return;
+        installedVersion = currentVersion;
+        if (!manual && autoChecked) return;
+        if (!manual) autoChecked = true;
+        var btn = document.getElementById('check-update-btn');
+        if (manual && btn) btn.textContent = 'Checking...';
         fetch('https://api.github.com/repos/Mo3he/Axis_Cam_Tailscale/releases/latest')
             .then(function(r) { return r.json(); })
             .then(function(data) {
@@ -555,10 +582,21 @@
                     document.getElementById('update-version').textContent = 'v' + tag;
                     document.getElementById('update-banner').classList.add('visible');
                     document.getElementById('ts-version').textContent = currentVersion + ' (outdated)';
+                    if (btn) btn.textContent = 'Update Available';
+                } else {
+                    if (manual && btn) btn.textContent = 'Up to date';
+                    setTimeout(function() { if (btn) btn.textContent = 'Check for Updates'; }, 3000);
                 }
             })
-            .catch(function() {});
+            .catch(function() {
+                if (manual && btn) btn.textContent = 'Check failed';
+                setTimeout(function() { if (btn) btn.textContent = 'Check for Updates'; }, 3000);
+            });
     }
+
+    document.getElementById('check-update-btn').addEventListener('click', function() {
+        if (installedVersion) checkForUpdate(installedVersion, true);
+    });
 
     function compareVersions(a, b) {
         var pa = a.split('.').map(Number);

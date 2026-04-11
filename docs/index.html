@@ -403,11 +403,11 @@
         <h3>Standard (Non-Root)</h3>
         <p>For Axis OS 12 and newer. Runs in user-space networking mode without root privileges.</p>
         <div class="arch-buttons">
-          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+          <a class="arch-btn" data-asset="Tailscale_VPN" data-arch="aarch64" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             AARCH64
           </a>
-          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+          <a class="arch-btn" data-asset="Tailscale_VPN" data-arch="armv7hf" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             ARM
           </a>
@@ -419,11 +419,11 @@
         <h3>Custom Server</h3>
         <p>Supports custom Tailscale control servers and auth keys. Ideal for self-hosted Headscale setups.</p>
         <div class="arch-buttons">
-          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+          <a class="arch-btn" data-asset="custom" data-arch="aarch64" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             AARCH64
           </a>
-          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+          <a class="arch-btn" data-asset="custom" data-arch="armv7hf" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             ARM
           </a>
@@ -435,11 +435,11 @@
         <h3>Root (Full Networking)</h3>
         <p>For Axis OS older than 12. Requires root access but provides full Tailscale networking features.</p>
         <div class="arch-buttons">
-          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+          <a class="arch-btn" data-asset="ROOT" data-arch="aarch64" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             AARCH64
           </a>
-          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+          <a class="arch-btn" data-asset="ROOT" data-arch="armv7hf" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             ARM
           </a>
@@ -526,6 +526,37 @@
           applyTheme(e.matches ? 'light' : 'dark');
         }
       });
+
+      // Rewrite download links to point directly to latest release assets
+      fetch('https://api.github.com/repos/Mo3he/Axis_Cam_Tailscale/releases/latest')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var assets = data.assets || [];
+          var buttons = document.querySelectorAll('a[data-asset]');
+          for (var i = 0; i < buttons.length; i++) {
+            var btn = buttons[i];
+            var type = btn.getAttribute('data-asset');
+            var arch = btn.getAttribute('data-arch');
+            for (var j = 0; j < assets.length; j++) {
+              var name = assets[j].name.toLowerCase();
+              var archMatch = name.indexOf(arch) !== -1;
+              var typeMatch = false;
+              if (type === 'Tailscale_VPN') {
+                typeMatch = name.indexOf('custom') === -1 && name.indexOf('root') === -1;
+              } else if (type === 'custom') {
+                typeMatch = name.indexOf('custom') !== -1;
+              } else if (type === 'ROOT') {
+                typeMatch = name.indexOf('root') !== -1;
+              }
+              if (archMatch && typeMatch) {
+                btn.href = assets[j].browser_download_url;
+                btn.removeAttribute('target');
+                break;
+              }
+            }
+          }
+        })
+        .catch(function() {});
     })();
   </script>
 </body>
