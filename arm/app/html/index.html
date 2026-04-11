@@ -4,221 +4,500 @@
     <meta charset="UTF-8">
     <title>Tailscale VPN</title>
     <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #181b23;
+            --surface2: #1e2230;
+            --border: #262a35;
+            --text: #e4e6ed;
+            --muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --radius: 10px;
+            --mono: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f6f8;
+            --surface: #ffffff;
+            --surface2: #f0f1f4;
+            --border: #e0e3e8;
+            --text: #1a1a2e;
+            --muted: #6b7084;
+            --accent: #2563eb;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-            background: #f5f6f8;
-            color: #1a1a2e;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             padding: 20px;
             font-size: 14px;
+            max-width: 720px;
+            margin: 0 auto;
+            line-height: 1.5;
         }
 
-        header {
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .header-left {
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .theme-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            cursor: pointer;
+            border-radius: 8px;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-btn:hover { color: var(--text); border-color: var(--muted); }
+        .theme-btn svg { width: 16px; height: 16px; }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        /* Status */
+        .status-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 8px;
             margin-bottom: 16px;
         }
-
-        header svg { flex-shrink: 0; }
-
-        header h1 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-
-        .card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 18px 20px;
-            margin-bottom: 14px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-        }
-
-        /* ── Status row ── */
-        .status-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
+        .status-banner.connected { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); }
+        .status-banner.connecting { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+        .status-banner.disconnected { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
 
         .dot {
-            width: 11px;
-            height: 11px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             flex-shrink: 0;
         }
+        .status-banner.connected .dot { background: var(--green); box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
+        .status-banner.connecting .dot { background: var(--yellow); box-shadow: 0 0 0 3px rgba(245,158,11,0.2); animation: pulse 1.5s infinite; }
+        .status-banner.disconnected .dot { background: var(--red); box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
 
-        .dot.connected    { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
-        .dot.connecting   { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
-        .dot.disconnected { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.2); }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
 
-        .status-label {
-            font-size: 15px;
+        .status-text {
+            font-size: 14px;
             font-weight: 600;
         }
+        .status-banner.connected .status-text { color: var(--green); }
+        .status-banner.connecting .status-text { color: var(--yellow); }
+        .status-banner.disconnected .status-text { color: var(--red); }
 
-        /* ── Auth URL block ── */
-        #auth-block {
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            border-radius: 8px;
-            padding: 14px 16px;
-        }
-
-        #auth-block p {
+        .status-time {
+            margin-left: auto;
             font-size: 12px;
-            color: #92400e;
-            margin-bottom: 10px;
-            font-weight: 500;
+            color: var(--muted);
+            font-family: var(--mono);
         }
 
-        #auth-link {
-            display: inline-block;
-            background: #0166ff;
+        /* Auth block */
+        .auth-block {
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .auth-block p {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+        .auth-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
             color: #fff;
             text-decoration: none;
             font-weight: 600;
             font-size: 13px;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
-
-        #auth-link:hover { background: #0052cc; }
-
-        #auth-url-text {
+        .auth-btn:hover { opacity: 0.9; }
+        .auth-url {
             display: block;
             font-size: 11px;
-            color: #888;
+            color: var(--muted);
             word-break: break-all;
-            font-family: monospace;
+            font-family: var(--mono);
         }
 
-        /* ── Info grid (connected state) ── */
+        /* Info grid */
         .info-grid {
             display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 6px 16px;
-            font-size: 13px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
-
-        .info-grid .label { color: #888; }
-        .info-grid .value { font-weight: 500; font-family: monospace; }
-
-        /* ── Log section ── */
-        .log-header {
+        .info-item {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 12px 14px;
+        }
+        .info-label {
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #999;
+            letter-spacing: 0.4px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--mono);
+            word-break: break-all;
+        }
+        .info-value.dim { color: var(--muted); font-weight: 400; }
+
+        /* Log viewer */
+        .log-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
         }
+        .log-badge {
+            font-size: 11px;
+            color: var(--muted);
+            font-family: var(--mono);
+        }
+        .log-toggle {
+            font-size: 12px;
+            color: var(--accent);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .log-toggle:hover { text-decoration: underline; }
 
-        #log-frame {
-            width: 100%;
-            height: 500px;
-            border: 1px solid #e8e8ec;
+        .log-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: var(--mono);
+            font-size: 11.5px;
+            line-height: 1.7;
+            color: var(--muted);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .log-box .log-line { display: block; }
+        .log-box .log-line:hover { background: rgba(79,143,247,0.06); }
+        .log-line .ts { color: var(--muted); opacity: 0.6; }
+        .log-line .msg-info { color: var(--accent); }
+        .log-line .msg-warn { color: var(--yellow); }
+        .log-line .msg-err { color: var(--red); }
+        .log-line .msg-ok { color: var(--green); }
+
+        /* Refresh indicator */
+        .refresh-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* Update banner */
+        .update-banner {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            background: rgba(79,143,247,0.1);
+            border: 1px solid rgba(79,143,247,0.2);
+        }
+        .update-banner.visible { display: flex; }
+        .update-banner .update-text {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .update-banner .update-text strong { color: var(--accent); }
+        .update-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 6px 14px;
             border-radius: 6px;
-            display: block;
+            white-space: nowrap;
+        }
+        .update-btn:hover { opacity: 0.9; }
+
+        @media (max-width: 480px) {
+            body { padding: 14px; }
+            .info-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-<header>
-    <!-- Tailscale wordmark icon -->
-    <svg width="28" height="28" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="128" height="128" rx="28" fill="#0166FF"/>
-        <circle cx="64" cy="64" r="18" fill="white"/>
-        <circle cx="64" cy="22" r="10" fill="white"/>
-        <circle cx="64" cy="106" r="10" fill="white"/>
-        <circle cx="22" cy="64" r="10" fill="white"/>
-        <circle cx="106" cy="64" r="10" fill="white"/>
-        <circle cx="35" cy="35" r="10" fill="white"/>
-        <circle cx="93" cy="35" r="10" fill="white"/>
-        <circle cx="35" cy="93" r="10" fill="white"/>
-        <circle cx="93" cy="93" r="10" fill="white"/>
-    </svg>
-    <h1>Tailscale VPN</h1>
-</header>
-
-<!-- Status card -->
-<div class="card">
-    <div class="status-row">
-        <span id="dot" class="dot connecting"></span>
-        <span id="status-label" class="status-label">Checking&hellip;</span>
+<div class="header">
+    <div class="header-left">
+        <svg width="26" height="26" viewBox="0 0 128 128" fill="none">
+            <rect width="128" height="128" rx="28" fill="#0166FF"/>
+            <circle cx="32" cy="32" r="13" fill="white" opacity="0.4"/>
+            <circle cx="64" cy="32" r="13" fill="white" opacity="0.4"/>
+            <circle cx="96" cy="32" r="13" fill="white" opacity="0.4"/>
+            <circle cx="32" cy="64" r="13" fill="white"/>
+            <circle cx="64" cy="64" r="13" fill="white"/>
+            <circle cx="96" cy="64" r="13" fill="white"/>
+            <circle cx="32" cy="96" r="13" fill="white" opacity="0.4"/>
+            <circle cx="64" cy="96" r="13" fill="white"/>
+            <circle cx="96" cy="96" r="13" fill="white" opacity="0.4"/>
+        </svg>
+        <h1>Tailscale VPN</h1>
     </div>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+</div>
 
-    <!-- Shown when waiting for auth -->
-    <div id="auth-block" style="display:none;">
-        <p>Open this link in a browser to authenticate this device:</p>
-        <a id="auth-link" href="#" target="_blank">Authenticate &rarr;</a>
-        <span id="auth-url-text"></span>
-    </div>
+<!-- Status -->
+<div id="status-banner" class="status-banner connecting">
+    <span class="dot"></span>
+    <span id="status-text" class="status-text">Checking...</span>
+    <span id="status-time" class="status-time"></span>
+</div>
 
-    <!-- Shown when connected -->
-    <div id="info-block" style="display:none;" class="info-grid">
-        <span class="label">Tailscale IP</span><span class="value" id="ts-ip">&mdash;</span>
-        <span class="label">Node</span><span class="value" id="ts-node">&mdash;</span>
+<!-- Update available -->
+<div id="update-banner" class="update-banner">
+    <div class="update-text">Update available: <strong id="update-version"></strong></div>
+    <a id="update-link" class="update-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+    </a>
+</div>
+
+<!-- Auth (hidden by default) -->
+<div id="auth-block" class="auth-block" style="display:none;">
+    <p>Authenticate this device to connect to your Tailscale network:</p>
+    <a id="auth-link" class="auth-btn" href="#" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Login Page
+    </a>
+    <span id="auth-url-text" class="auth-url"></span>
+</div>
+
+<!-- Connection Info -->
+<div class="card" id="info-card" style="display:none;">
+    <div class="card-title">Connection Details</div>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Tailscale IP</div>
+            <div class="info-value" id="ts-ip">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Node Name</div>
+            <div class="info-value" id="ts-node">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Account</div>
+            <div class="info-value" id="ts-tailnet">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Version</div>
+            <div class="info-value" id="ts-version">-</div>
+        </div>
     </div>
 </div>
 
-<!-- Log card -->
+<!-- Logs -->
 <div class="card">
-    <div class="log-header">Service Log</div>
-    <iframe id="log-frame" src="/axis-cgi/admin/systemlog.cgi?appname=Tailscale_VPN"></iframe>
+    <div class="log-controls">
+        <div class="card-title" style="margin-bottom:0;">Service Log</div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <span id="log-count" class="log-badge"></span>
+            <button class="log-toggle" id="log-scroll-btn">Scroll to bottom</button>
+        </div>
+    </div>
+    <div class="log-box" id="log-box">Loading logs...</div>
+</div>
+
+<div class="refresh-bar">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    <span>Auto-refresh every 5s</span>
 </div>
 
 <script>
-    var LOG = '/axis-cgi/admin/systemlog.cgi?appname=Tailscale_VPN';
+(function() {
+    var APP = 'Tailscale_VPN';
+    var LOG_URL = '/axis-cgi/admin/systemlog.cgi?appname=' + APP;
+    var logBox = document.getElementById('log-box');
+    var autoScroll = true;
+
+    // Theme
+    var toggle = document.getElementById('themeToggle');
+    var sun = document.getElementById('iconSun');
+    var moon = document.getElementById('iconMoon');
+    var root = document.documentElement;
+
+    function applyTheme(t) {
+        if (t === 'light') {
+            root.setAttribute('data-theme', 'light');
+            sun.style.display = 'none';
+            moon.style.display = 'block';
+        } else {
+            root.removeAttribute('data-theme');
+            sun.style.display = 'block';
+            moon.style.display = 'none';
+        }
+    }
+    var stored = localStorage.getItem('ts-acap-theme');
+    if (stored) applyTheme(stored);
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches) applyTheme('light');
+
+    toggle.addEventListener('click', function() {
+        var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        localStorage.setItem('ts-acap-theme', next);
+        applyTheme(next);
+    });
+
+    // Log scroll
+    document.getElementById('log-scroll-btn').addEventListener('click', function() {
+        logBox.scrollTop = logBox.scrollHeight;
+        autoScroll = true;
+    });
+    logBox.addEventListener('scroll', function() {
+        autoScroll = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 40;
+    });
 
     function parse(txt) {
-        // Use the LAST occurrence of each pattern so stale log entries don't win
         var allUrls = txt.match(/https:\/\/login\.tailscale\.com\/[^\s<"\t]+/g) || [];
         var latestUrl = allUrls.length ? allUrls[allUrls.length - 1] : null;
 
-        // Tailscale IP — 100.x.x.x range
-        var allIPs = txt.match(/\b100\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g) || [];
-        var tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
+        var ipMatch = txt.match(/peerapi: serving on http:\/\/(100\.[\d.]+):/g);
+        var tsIP = null;
+        if (ipMatch) {
+            var last = ipMatch[ipMatch.length - 1];
+            var m = last.match(/http:\/\/(100\.[\d.]+):/);
+            if (m) tsIP = m[1];
+        }
+        if (!tsIP) {
+            var allIPs = txt.match(/\b100\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g) || [];
+            tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
+        }
 
-        // Node name from "Logged into tailnet" line or "acap-" username pattern
-        var nodeMatch = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/);
+        var nodeMatch = txt.match(/popBrowserAuthNow\("([^"]+)"\)/);
+        if (!nodeMatch) nodeMatch = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/);
         var node = nodeMatch ? nodeMatch[1] : null;
 
-        // Determine state from the LAST state-transition log line
+        var loginMatch = txt.match(/active login:\s+(\S+)/);
+        var tailnet = loginMatch ? loginMatch[1] : null;
+
+        var versionMatch = txt.match(/Program starting: v(\d+\.\d+\.\d+)/);
+        if (!versionMatch) versionMatch = txt.match(/tailscaled[\s_](\d+\.\d+\.\d+)/);
+        var version = versionMatch ? versionMatch[1] : null;
+
         var stateLines = txt.match(/Switching ipn state [^\n]+/g) || [];
         var lastState = stateLines.length ? stateLines[stateLines.length - 1] : '';
-        var isRunning = /-> Running/.test(lastState) || /Logged into tailnet/.test(txt);
+        var isRunning = /-> Running/.test(lastState) || /Tailscale VPN is running/.test(txt);
 
-        if (isRunning) {
-            return { state: 'connected', url: null, ip: tsIP, node: node };
+        if (isRunning) return { state: 'connected', url: null, ip: tsIP, node: node, tailnet: tailnet, version: version };
+        if (latestUrl) return { state: 'connecting', url: latestUrl, ip: null, node: null, tailnet: null, version: version };
+        if (/Starting Tailscale|tailscaled.*start|logtail started/.test(txt)) return { state: 'connecting', url: null, ip: null, node: null, tailnet: null, version: version };
+        return { state: 'disconnected', url: null, ip: null, node: null, tailnet: null, version: version };
+    }
+
+    function classifyLine(msg) {
+        if (/error|fail|panic|fatal/i.test(msg)) return 'msg-err';
+        if (/warn|timeout|retry/i.test(msg)) return 'msg-warn';
+        if (/connected|running|logged in|success/i.test(msg)) return 'msg-ok';
+        if (/starting|auth|login|switching/i.test(msg)) return 'msg-info';
+        return '';
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function renderLogs(txt) {
+        var lines = txt.split('\n').filter(function(l) { return l.trim(); });
+        document.getElementById('log-count').textContent = lines.length + ' lines';
+
+        var h = '';
+        for (var i = 0; i < lines.length; i++) {
+            var parts = lines[i].match(/^(\S+\s+\d+\s+[\d:]+)\s+(.*)/);
+            var cls = classifyLine(lines[i]);
+            if (parts) {
+                h += '<span class="log-line"><span class="ts">' + escHtml(parts[1]) + '</span> <span class="' + cls + '">' + escHtml(parts[2]) + '</span></span>\n';
+            } else {
+                h += '<span class="log-line"><span class="' + cls + '">' + escHtml(lines[i]) + '</span></span>\n';
+            }
         }
-        if (latestUrl) {
-            return { state: 'connecting', url: latestUrl, ip: null, node: null };
-        }
-        if (/Starting Tailscale|tailscaled.*start|logtail started/.test(txt)) {
-            return { state: 'connecting', url: null, ip: null, node: null };
-        }
-        return { state: 'disconnected', url: null, ip: null, node: null };
+        logBox.innerHTML = h;
+        if (autoScroll) logBox.scrollTop = logBox.scrollHeight;
     }
 
     function render(r) {
-        var dot   = document.getElementById('dot');
-        var label = document.getElementById('status-label');
-        var auth  = document.getElementById('auth-block');
-        var info  = document.getElementById('info-block');
+        var banner = document.getElementById('status-banner');
+        var statusText = document.getElementById('status-text');
+        var auth = document.getElementById('auth-block');
+        var info = document.getElementById('info-card');
 
-        dot.className = 'dot ' + r.state;
+        banner.className = 'status-banner ' + r.state;
+        var labels = { connected: 'Connected', connecting: 'Connecting...', disconnected: 'Stopped' };
+        statusText.textContent = labels[r.state];
 
-        var labels = { connected: 'Connected', connecting: 'Connecting\u2026', disconnected: 'Stopped' };
-        label.textContent = labels[r.state];
-
-        // Auth block
         if (r.state === 'connecting' && r.url) {
             document.getElementById('auth-link').href = r.url;
             document.getElementById('auth-url-text').textContent = r.url;
@@ -227,31 +506,70 @@
             auth.style.display = 'none';
         }
 
-        // Info block
         if (r.state === 'connected') {
-            document.getElementById('ts-ip').textContent   = r.ip   || '\u2014';
-            document.getElementById('ts-node').textContent = r.node || '\u2014';
+            document.getElementById('ts-ip').textContent = r.ip || '-';
+            document.getElementById('ts-ip').className = 'info-value' + (r.ip ? '' : ' dim');
+            document.getElementById('ts-node').textContent = r.node || '-';
+            document.getElementById('ts-node').className = 'info-value' + (r.node ? '' : ' dim');
+            document.getElementById('ts-tailnet').textContent = r.tailnet || '-';
+            document.getElementById('ts-tailnet').className = 'info-value' + (r.tailnet ? '' : ' dim');
+            document.getElementById('ts-version').textContent = r.version || '-';
+            document.getElementById('ts-version').className = 'info-value' + (r.version ? '' : ' dim');
             info.style.display = '';
+            if (r.version) checkForUpdate(r.version);
         } else {
             info.style.display = 'none';
         }
+
+        var now = new Date();
+        document.getElementById('status-time').textContent =
+            ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2) + ':' + ('0'+now.getSeconds()).slice(-2);
     }
 
     function refresh() {
-        // Reload the log iframe (same-origin)
-        var frame = document.getElementById('log-frame');
-        try { frame.contentWindow.location.reload(); } catch(e) {}
-
-        fetch(LOG, { cache: 'no-store', credentials: 'same-origin' })
+        fetch(LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
             .then(function(r) { return r.text(); })
-            .then(function(txt) { render(parse(txt)); })
+            .then(function(txt) {
+                render(parse(txt));
+                renderLogs(txt);
+            })
             .catch(function() {
-                document.getElementById('status-label').textContent = 'Unknown';
+                document.getElementById('status-text').textContent = 'Unable to fetch logs';
             });
     }
 
     refresh();
     setInterval(refresh, 5000);
+
+    // Check for updates from GitHub
+    var latestChecked = false;
+    function checkForUpdate(currentVersion) {
+        if (!currentVersion || latestChecked) return;
+        latestChecked = true;
+        fetch('https://api.github.com/repos/Mo3he/Axis_Cam_Tailscale/releases/latest')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var tag = (data.tag_name || '').replace(/^v/, '');
+                if (!tag) return;
+                if (compareVersions(tag, currentVersion) > 0) {
+                    document.getElementById('update-version').textContent = 'v' + tag;
+                    document.getElementById('update-banner').classList.add('visible');
+                    document.getElementById('ts-version').textContent = currentVersion + ' (outdated)';
+                }
+            })
+            .catch(function() {});
+    }
+
+    function compareVersions(a, b) {
+        var pa = a.split('.').map(Number);
+        var pb = b.split('.').map(Number);
+        for (var i = 0; i < 3; i++) {
+            if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+            if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+        }
+        return 0;
+    }
+})();
 </script>
 
 </body>
