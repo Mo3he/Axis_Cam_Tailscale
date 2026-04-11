@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tailscale VPN for Axis Cameras</title>
+  <meta name="description" content="Install Tailscale VPN directly on your Axis camera. Secure remote access with WireGuard, no extra hardware needed.">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #181b23;
+      --border: #262a35;
+      --text: #e4e6ed;
+      --muted: #8b8fa3;
+      --accent: #4f8ff7;
+      --accent-hover: #6ba1ff;
+      --green: #34d399;
+      --radius: 12px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8f9fb;
+      --surface: #ffffff;
+      --border: #e0e3e8;
+      --text: #1a1d27;
+      --muted: #5f6577;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --green: #059669;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    /* Nav */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+    }
+    nav .logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    nav .links { display: flex; gap: 1.5rem; }
+    nav .links a { color: var(--muted); font-size: 0.95rem; }
+    nav .links a:hover { color: var(--text); }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      width: 34px;
+      height: 34px;
+    }
+    .theme-toggle:hover { border-color: var(--muted); color: var(--text); }
+    .theme-toggle svg { width: 18px; height: 18px; }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 4rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero .badge {
+      display: inline-block;
+      background: rgba(79, 143, 247, 0.12);
+      color: var(--accent);
+      padding: 0.35rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(79, 143, 247, 0.2);
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+    .btn-outline {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: transparent;
+    }
+    .btn-outline:hover { border-color: var(--muted); color: var(--text); }
+
+    /* Features */
+    .features {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 2rem 4rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+    }
+    .feature-card .icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.75rem;
+    }
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .feature-card p {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    /* Downloads */
+    .downloads {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 2rem 4rem;
+    }
+    .downloads h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .downloads .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      font-size: 1.05rem;
+    }
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+    .download-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .download-card .tag {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+      width: fit-content;
+    }
+    .tag-recommended { background: rgba(52, 211, 153, 0.15); color: var(--green); }
+    .tag-custom { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .tag-root { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .download-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .download-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      flex: 1;
+    }
+    .arch-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .arch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .arch-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .arch-btn svg { width: 16px; height: 16px; }
+
+    /* Install */
+    .install {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 3rem 2rem 4rem;
+      text-align: center;
+    }
+    .install h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+    }
+    .steps {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .step {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .step-num {
+      min-width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(79, 143, 247, 0.12);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 1px solid rgba(79, 143, 247, 0.2);
+    }
+    .step-text { padding-top: 0.35rem; }
+    .step-text strong { display: block; margin-bottom: 0.15rem; }
+    .step-text span { color: var(--muted); font-size: 0.92rem; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      max-width: 1100px;
+      margin: 2rem auto 0;
+    }
+    footer .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 2rem; }
+      .hero { padding: 3rem 1.25rem 2.5rem; }
+      .features, .downloads, .install { padding-left: 1.25rem; padding-right: 1.25rem; }
+      nav { padding: 1rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">Tailscale VPN + Axis</div>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#downloads">Downloads</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/Mo3he/Axis_Cam_Tailscale" target="_blank" rel="noopener">GitHub</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="badge">Open Source &middot; ACAP Package</div>
+    <h1>Tailscale VPN for <span>Axis Cameras</span></h1>
+    <p>Secure remote access to your Axis cameras over WireGuard. No extra hardware, no complex network config - just install and connect.</p>
+    <div class="hero-buttons">
+      <a href="#downloads" class="btn btn-primary">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download EAP
+      </a>
+      <a href="https://github.com/Mo3he/Axis_Cam_Tailscale" class="btn btn-outline" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.838 1.237 1.838 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.468-2.382 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.838 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="features">
+    <div class="feature-card">
+      <div class="icon">🔒</div>
+      <h3>WireGuard Encryption</h3>
+      <p>Built on Tailscale's WireGuard-based tunnel for fast, modern, and auditable encryption on every connection.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">⚡</div>
+      <h3>No Root Required</h3>
+      <p>Runs in user-space networking mode on Axis OS 12+. No need to enable root access on your camera.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📦</div>
+      <h3>Simple EAP Install</h3>
+      <p>Upload the .eap file through your camera's web interface. Start the app and authenticate - done.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔄</div>
+      <h3>Weekly Auto-Updates</h3>
+      <p>New EAP packages are automatically built and released every week when a new Tailscale version is available.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🌐</div>
+      <h3>Headscale Compatible</h3>
+      <p>The Custom variant supports self-hosted Headscale servers with configurable server URL and auth key.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🏗️</div>
+      <h3>ARM &amp; AARCH64</h3>
+      <p>Supports both ARM (armv7hf) and AARCH64 architectures, covering a wide range of Axis camera models.</p>
+    </div>
+  </section>
+
+  <!-- Downloads -->
+  <section id="downloads" class="downloads">
+    <h2>Download</h2>
+    <p class="subtitle">Pick the right variant for your camera and Axis OS version.</p>
+    <div class="download-grid">
+      <!-- Standard -->
+      <div class="download-card">
+        <div class="tag tag-recommended">Recommended</div>
+        <h3>Standard (Non-Root)</h3>
+        <p>For Axis OS 12 and newer. Runs in user-space networking mode without root privileges.</p>
+        <div class="arch-buttons">
+          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            AARCH64
+          </a>
+          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            ARM
+          </a>
+        </div>
+      </div>
+      <!-- Custom -->
+      <div class="download-card">
+        <div class="tag tag-custom">Custom / Headscale</div>
+        <h3>Custom Server</h3>
+        <p>Supports custom Tailscale control servers and auth keys. Ideal for self-hosted Headscale setups.</p>
+        <div class="arch-buttons">
+          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            AARCH64
+          </a>
+          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            ARM
+          </a>
+        </div>
+      </div>
+      <!-- ROOT -->
+      <div class="download-card">
+        <div class="tag tag-root">Root &middot; Legacy</div>
+        <h3>Root (Full Networking)</h3>
+        <p>For Axis OS older than 12. Requires root access but provides full Tailscale networking features.</p>
+        <div class="arch-buttons">
+          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            AARCH64
+          </a>
+          <a class="arch-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            ARM
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Install -->
+  <section id="install" class="install">
+    <h2>Installation</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Download the EAP</strong>
+          <span>Grab the right .eap file for your camera architecture from the releases page above.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>Upload to your camera</strong>
+          <span>Log into your Axis camera web interface and go to <strong>Apps &rarr; Add App</strong>. Upload the .eap file.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>Start &amp; authenticate</strong>
+          <span>Start the app, click <strong>Open</strong> to view logs and get your Tailscale authentication URL. Sign in and you're connected.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="https://github.com/Mo3he/Axis_Cam_Tailscale" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases" target="_blank" rel="noopener">Releases</a>
+      <a href="https://github.com/sponsors/Mo3he" target="_blank" rel="noopener">Sponsor</a>
+      <a href="https://tailscale.com/" target="_blank" rel="noopener">Tailscale</a>
+      <a href="https://www.axis.com/" target="_blank" rel="noopener">Axis</a>
+    </div>
+    <p>&copy; 2025 Mo3he &middot; MIT License</p>
+  </footer>
+
+  <script>
+    (function() {
+      var toggle = document.getElementById('themeToggle');
+      var sun = document.getElementById('iconSun');
+      var moon = document.getElementById('iconMoon');
+      var html = document.documentElement;
+
+      function applyTheme(theme) {
+        if (theme === 'light') {
+          html.setAttribute('data-theme', 'light');
+          sun.style.display = 'none';
+          moon.style.display = 'block';
+        } else {
+          html.removeAttribute('data-theme');
+          sun.style.display = 'block';
+          moon.style.display = 'none';
+        }
+      }
+
+      var stored = localStorage.getItem('theme');
+      if (stored) {
+        applyTheme(stored);
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        applyTheme('light');
+      }
+
+      toggle.addEventListener('click', function() {
+        var isLight = html.getAttribute('data-theme') === 'light';
+        var next = isLight ? 'dark' : 'light';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+      });
+
+      window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function(e) {
+        if (!localStorage.getItem('theme')) {
+          applyTheme(e.matches ? 'light' : 'dark');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
