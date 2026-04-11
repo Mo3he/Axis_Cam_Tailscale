@@ -424,6 +424,10 @@
         autoScroll = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 40;
     });
 
+    // Cache helpers - survive syslog rotation
+    function cacheSet(k, v) { if (v) try { localStorage.setItem('ts-' + k, v); } catch(e){} }
+    function cacheGet(k) { try { return localStorage.getItem('ts-' + k); } catch(e){ return null; } }
+
     function parse(txt) {
         var allUrls = txt.match(/https:\/\/login\.tailscale\.com\/[^\s<"\t]+/g) || [];
         var latestUrl = allUrls.length ? allUrls[allUrls.length - 1] : null;
@@ -470,9 +474,23 @@
             if (vm) version = vm[1];
         }
 
+        // Cache when found, restore from cache when missing
+        cacheSet('ip', tsIP); cacheSet('node', node); cacheSet('tailnet', tailnet); cacheSet('version', version);
+        tsIP = tsIP || cacheGet('ip');
+        node = node || cacheGet('node');
+        tailnet = tailnet || cacheGet('tailnet');
+        version = version || cacheGet('version');
+
         var stateLines = txt.match(/Switching ipn state [^\n]+/g) || [];
         var lastState = stateLines.length ? stateLines[stateLines.length - 1] : '';
         var isRunning = /-> Running/.test(lastState) || /Tailscale VPN is running/.test(txt);
+        // Detect running even after syslog rotation (daemon active but startup lines gone)
+        if (!isRunning && !latestUrl) {
+            isRunning = /health\(warnable=[^)]+\): ok/.test(txt) ||
+                        /derp-\d+ connected/.test(txt) ||
+                        /c2n: GET/.test(txt) ||
+                        /localapi:/.test(txt);
+        }
 
         if (isRunning) return { state: 'connected', url: null, ip: tsIP, node: node, tailnet: tailnet, version: version };
         if (latestUrl) return { state: 'connecting', url: latestUrl, ip: null, node: null, tailnet: null, version: version };
