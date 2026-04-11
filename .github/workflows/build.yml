@@ -85,7 +85,23 @@ jobs:
         mv tailscale_bins/tailscale tailscale_bins/tailscale_arm64
         mv tailscale_bins/tailscaled tailscale_bins/tailscaled_arm64
 
-    # 4. Build each folder, update manifest, and copy .eap files
+    # 4. Strip binaries to reduce package size
+    - name: Strip binaries
+      if: env.build_needed == 'true'
+      run: |
+        # Install cross-architecture strip tools
+        sudo apt-get update
+        sudo apt-get install -y binutils-aarch64-linux-gnu binutils-arm-linux-gnueabihf
+
+        # Strip debug info and symbol tables (zero runtime/memory cost)
+        aarch64-linux-gnu-strip -s tailscale_bins/tailscale_arm64
+        aarch64-linux-gnu-strip -s tailscale_bins/tailscaled_arm64
+        arm-linux-gnueabihf-strip -s tailscale_bins/tailscale_arm
+        arm-linux-gnueabihf-strip -s tailscale_bins/tailscaled_arm
+
+        ls -lh tailscale_bins/
+
+    # 5. Build each folder, update manifest, and copy .eap files
     - name: Build all folders
       if: env.build_needed == 'true'
       run: |
@@ -143,7 +159,7 @@ jobs:
         # Clean up
         rm -rf build tailscale_bins *.tgz
 
-    # 5. Commit updated manifests and .eap files directly to main
+    # 6. Commit updated manifests and .eap files directly to main
     - name: Commit updates to main
       if: env.build_needed == 'true'
       run: |
@@ -158,7 +174,7 @@ jobs:
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Mo3he/Axis_Cam_Tailscale.git main
         fi
 
-    # 6. Create GitHub Release with all new .eap files
+    # 7. Create GitHub Release with all new .eap files
     - name: Create GitHub Release
       if: env.build_needed == 'true'
       uses: softprops/action-gh-release@v1
