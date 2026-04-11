@@ -42,7 +42,8 @@ $TAILSCALED_PATH \
     --state="$STATE_DIR/tailscaled.state" \
     --socket=$SOCKET_PATH \
     --socks5-server=localhost:1055 \
-    --tun=userspace-networking &
+    --tun=userspace-networking \
+    --verbose=1 2>&1 | logger -t "tailscale_script" &
 TAILSCALED_PID=$!
 
 # Wait for tailscaled to initialize

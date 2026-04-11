@@ -15,13 +15,14 @@ killall tailscaled 2>/dev/null || true
 logger -t "Tailscale_VPN" "Starting tailscaled daemon"
 "$APP_DIR/lib/tailscaled" \
     --state="$STATE_DIR/tailscaled.state" \
-    --socket="$STATE_DIR/tailscaled.sock" &
+    --socket="$STATE_DIR/tailscaled.sock" \
+    --verbose=1 2>&1 | logger -t "Tailscale_VPN" &
 TAILSCALED_PID=$!
 
 sleep 2
 
 logger -t "Tailscale_VPN" "Connecting to Tailscale network (scroll to bottom for auth URL if prompted)"
-"$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" up --accept-routes
+"$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" up --accept-routes 2>&1 | logger -t "Tailscale_VPN"
 
 logger -t "Tailscale_VPN" "Tailscale VPN is running"
 wait $TAILSCALED_PID
