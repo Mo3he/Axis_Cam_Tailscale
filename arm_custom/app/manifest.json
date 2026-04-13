@@ -4,9 +4,9 @@
         "setup": {
             "friendlyName": "Tailscale VPN",
             "appName": "serverconfig",
-            "vendor": "Tailscale - Packaged by Mo3he",
+            "vendor": "Mo3he",
             "embeddedSdkVersion": "3.0",
-            "vendorUrl": "https://www.tailscale.com",
+            "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
             "runMode": "respawn",
             "version": "1.96.4",
             "architecture": "armv7hf"
