@@ -440,6 +440,10 @@
             if (m) tsIP = m[1];
         }
         if (!tsIP) {
+            var nmSelf = txt.match(/netmap: self:[^\n]*\[(100\.[\d.]+)\//);
+            if (nmSelf) tsIP = nmSelf[1];
+        }
+        if (!tsIP) {
             var allIPs = txt.match(/\b100\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g) || [];
             tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
         }
@@ -452,11 +456,9 @@
             if (nm) node = nm[1];
         }
         if (!node) {
-            var hostMatches = txt.match(/^\S+\s+(\S+)\s+\[\s*INFO/gm);
-            if (hostMatches) {
-                var hm = hostMatches[hostMatches.length - 1].match(/^\S+\s+(\S+)/);
-                if (hm) node = hm[1];
-            }
+            // Extract hostname from Axis syslog format: "2026-01-01T...+00:00 Hostname [ NOTICE  ]"
+            var hostLine = txt.match(/\d{4}-\d{2}-\d{2}T[\d:.]+[+-]\d{2}:\d{2}\s+(\S+)\s+\[/);
+            if (hostLine) node = hostLine[1];
         }
 
         var loginMatches = txt.match(/active login:\s+\S+/g);
@@ -465,6 +467,14 @@
             var lm = loginMatches[loginMatches.length - 1].match(/active login:\s+(\S+)/);
             if (lm) tailnet = lm[1];
         }
+        if (!tailnet) {
+            // Fallback: extract from periodic netmap lines "u=user@email.com"
+            var userMatches = txt.match(/\bu=([^\s\[,\]]+)/g);
+            if (userMatches) {
+                var um = userMatches[userMatches.length - 1].match(/u=([^\s\[,\]]+)/);
+                if (um) tailnet = um[1];
+            }
+        }
 
         var versionMatches = txt.match(/Program starting: v(\d+\.\d+\.\d+)/g);
         var version = null;
@@ -472,6 +482,15 @@
             var last = versionMatches[versionMatches.length - 1];
             var vm = last.match(/v(\d+\.\d+\.\d+)/);
             if (vm) version = vm[1];
+        }
+        if (!version) {
+            // Fallback: extract from periodic "v1.2.3-tXXX-gYYY peers:" log lines
+            var peersMatches = txt.match(/v(\d+\.\d+\.\d+)-\S+\s+peers:/g);
+            if (peersMatches) {
+                var lp = peersMatches[peersMatches.length - 1];
+                var pm = lp.match(/v(\d+\.\d+\.\d+)/);
+                if (pm) version = pm[1];
+            }
         }
 
         // Cache when found, restore from cache when missing
