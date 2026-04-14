@@ -614,20 +614,19 @@
             .then(function(txt) {
                 var result = parse(txt);
                 renderLogs(txt);
-                if (result.state !== 'disconnected') {
+                // Always verify with the app status API - syslog can have stale entries
+                checkAppRunning().then(function(running) {
+                    if (!running) {
+                        result.state = 'disconnected';
+                    } else if (result.state === 'disconnected') {
+                        result.state = 'connected';
+                        result.ip = result.ip || cacheGet('ip');
+                        result.node = result.node || cacheGet('node');
+                        result.tailnet = result.tailnet || cacheGet('tailnet');
+                        result.version = result.version || cacheGet('version');
+                    }
                     render(result);
-                } else {
-                    checkAppRunning().then(function(running) {
-                        if (running) {
-                            result.state = 'connected';
-                            result.ip = result.ip || cacheGet('ip');
-                            result.node = result.node || cacheGet('node');
-                            result.tailnet = result.tailnet || cacheGet('tailnet');
-                            result.version = result.version || cacheGet('version');
-                        }
-                        render(result);
-                    });
-                }
+                });
             })
             .catch(function() {
                 document.getElementById('status-text').textContent = 'Unable to fetch logs';
