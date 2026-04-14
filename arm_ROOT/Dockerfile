@@ -9,4 +9,5 @@ FROM ${REPO}/${SDK}:${VERSION}-${ARCH}-ubuntu${UBUNTU_VERSION}
 # Building the ACAP application
 COPY ./app /opt/app/
 WORKDIR /opt/app
+RUN arm-linux-gnueabihf-strip -s lib/tailscale lib/tailscaled
 RUN . /opt/axis/acapsdk/environment-setup* && acap-build ./
