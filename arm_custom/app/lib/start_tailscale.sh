@@ -42,7 +42,7 @@ $TAILSCALED_PATH \
     --state="$STATE_DIR/tailscaled.state" \
     --socket=$SOCKET_PATH \
     --socks5-server=localhost:1055 \
-    --outbound-http-proxy-listener=localhost:8080 \
+    --outbound-http-proxy-listen=localhost:8080 \
     --tun=userspace-networking \
     2>&1 | logger -t "tailscale_script" &
 TAILSCALED_PID=$!

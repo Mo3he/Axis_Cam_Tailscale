@@ -17,7 +17,7 @@ logger -t "Tailscale_VPN" "Starting tailscaled daemon (userspace networking)"
     --state="$STATE_DIR/tailscaled.state" \
     --socket="$STATE_DIR/tailscaled.sock" \
     --socks5-server=localhost:1055 \
-    --outbound-http-proxy-listener=localhost:8080 \
+    --outbound-http-proxy-listen=localhost:8080 \
     --tun=userspace-networking \
     2>&1 | logger -t "Tailscale_VPN" &
 TAILSCALED_PID=$!
