@@ -493,6 +493,17 @@
                 if (pm) version = pm[1];
             }
         }
+        if (!version) {
+            // ACAP3: logged by start.sh as "Tailscale version: 1.96.4"
+            var acap3ver = txt.match(/Tailscale version: (\d+\.\d+\.\d+)/);
+            if (acap3ver) version = acap3ver[1];
+        }
+
+        // ACAP3: extract IP from "Tailscale IP: 100.x.x.x" logged by start.sh
+        if (!tsIP) {
+            var acap3ip = txt.match(/Tailscale IP: (100\.[\d.]+)/);
+            if (acap3ip) tsIP = acap3ip[1];
+        }
 
         // Cache when found, restore from cache when missing
         cacheSet('ip', tsIP); cacheSet('node', node); cacheSet('tailnet', tailnet); cacheSet('version', version);
@@ -608,18 +619,27 @@
             .catch(function() { return false; });
     }
 
+    // ACAP3: also fetch the raw tailscaled.log (symlinked into html/) so the parser
+    // can find IP, version, tailnet and Running state from tailscaled's own output.
+    var DAEMON_LOG_URL = 'tailscaled.log';
+
     function refresh() {
-        fetch(LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
-            .then(function(r) { return r.text(); })
-            .then(function(txt) {
-                var result = parse(txt);
-                renderLogs(txt);
-                // Always verify with the app status API - syslog can have stale entries
-                checkAppRunning().then(function(running) {
+        var syslogFetch = fetch(LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
+            .then(function(r) { return r.text(); }).catch(function() { return ''; });
+        var daemonFetch = fetch(DAEMON_LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
+            .then(function(r) { return r.text(); }).catch(function() { return ''; });
+
+        Promise.all([syslogFetch, daemonFetch]).then(function(res) {
+            // Syslog provides Axis timestamp headers (node name) and start/stop events.
+            // tailscaled.log provides IP, version, tailnet, and -> Running state.
+            var txt = res[0] + '\n' + res[1];
+            var result = parse(txt);
+            renderLogs(res[0]);  // show syslog in log panel; daemon log is too verbose
+            // Always verify with the app status API - syslog can have stale entries
+            checkAppRunning().then(function(running) {
                     if (!running) {
                         result.state = 'disconnected';
                     } else if (!result.url && result.state !== 'connected') {
-                        // App is running but syslog is empty/rotated
                         result.state = 'connected';
                         result.ip = result.ip || cacheGet('ip');
                         result.node = result.node || cacheGet('node');
@@ -628,10 +648,9 @@
                     }
                     render(result);
                 });
-            })
-            .catch(function() {
-                document.getElementById('status-text').textContent = 'Unable to fetch logs';
-            });
+        }).catch(function() {
+            document.getElementById('status-text').textContent = 'Unable to fetch logs';
+        });
     }
 
     refresh();

@@ -1,0 +1,65 @@
+#!/bin/sh
+
+APP_DIR="/usr/local/packages/Tailscale_VPN"
+STATE_DIR="$APP_DIR/localdata"
+
+logger -t "Tailscale_VPN" "Starting Tailscale VPN service (userspace networking)"
+
+mkdir -p "$STATE_DIR"
+chmod 755 "$APP_DIR/lib/tailscale"
+chmod 755 "$APP_DIR/lib/tailscaled"
+
+# Kill any leftover daemon from a previous run
+killall tailscaled 2>/dev/null || true
+
+logger -t "Tailscale_VPN" "Starting tailscaled daemon"
+# Log to file (not piped through logger) -- avoids extra logger process holding
+# tailscaled stdout open, which prevents our wait loop from detecting exit
+"$APP_DIR/lib/tailscaled" \
+    --state="$STATE_DIR/tailscaled.state" \
+    --socket="$STATE_DIR/tailscaled.sock" \
+    --socks5-server=localhost:1055 \
+    --outbound-http-proxy-listen=localhost:8080 \
+    --tun=userspace-networking \
+    >> "$STATE_DIR/tailscaled.log" 2>&1 &
+TAILSCALED_PID=$!
+
+# Wait for socket to appear (up to 15 seconds)
+i=0
+while [ $i -lt 15 ] && [ ! -S "$STATE_DIR/tailscaled.sock" ]; do
+    sleep 1
+    i=$((i + 1))
+done
+
+logger -t "Tailscale_VPN" "Connecting to Tailscale network"
+# --timeout=10s: tailscale up exits promptly after connecting (or giving up),
+# preventing two large Go binaries running simultaneously and causing OOM on
+# cameras with limited RAM (e.g. 222 MB).
+# Capture output so we can extract auth URL and log it to syslog for the web UI.
+UP_OUT=$("$APP_DIR/lib/tailscale" \
+    --socket="$STATE_DIR/tailscaled.sock" \
+    up --hostname="$(hostname)" --timeout=10s 2>&1) || true
+echo "$UP_OUT" >> "$STATE_DIR/tailscaled.log"
+
+# If an auth URL was returned, log it so the web UI can show it
+AUTH_URL=$(echo "$UP_OUT" | grep -o 'https://login\.tailscale\.com/[^ ]*' | head -1)
+[ -n "$AUTH_URL" ] && logger -t "Tailscale_VPN" "Auth required: $AUTH_URL"
+
+# Log IP and version into syslog so the web UI details panel can populate
+TS_IP=$("$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" ip -4 2>/dev/null | head -1)
+TS_VER=$("$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" version 2>/dev/null | head -1)
+[ -n "$TS_IP" ]  && logger -t "Tailscale_VPN" "Tailscale IP: $TS_IP"
+[ -n "$TS_VER" ] && logger -t "Tailscale_VPN" "Tailscale version: $TS_VER"
+
+logger -t "Tailscale_VPN" "Tailscale VPN is running"
+logger -t "Tailscale_VPN" "HTTP/HTTPS proxy: http://127.0.0.1:8080"
+logger -t "Tailscale_VPN" "SOCKS5 proxy:     127.0.0.1:1055"
+
+# Monitoring loop: stay alive while tailscaled is running.
+# This keeps the parent Tailscale_VPN (C launcher) in the process table
+# so pidof finds it and the camera web UI shows "Running" instead of "Stopped".
+while kill -0 "$TAILSCALED_PID" 2>/dev/null; do
+    sleep 5
+done
+
+logger -t "Tailscale_VPN" "tailscaled exited"
