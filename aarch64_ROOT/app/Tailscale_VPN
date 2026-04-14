@@ -16,7 +16,7 @@ logger -t "Tailscale_VPN" "Starting tailscaled daemon"
 "$APP_DIR/lib/tailscaled" \
     --state="$STATE_DIR/tailscaled.state" \
     --socket="$STATE_DIR/tailscaled.sock" \
-    --verbose=1 2>&1 | logger -t "Tailscale_VPN" &
+    2>&1 | logger -t "Tailscale_VPN" &
 TAILSCALED_PID=$!
 
 sleep 2
