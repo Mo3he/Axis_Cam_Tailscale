@@ -511,6 +511,16 @@
                         /localapi:/.test(txt);
         }
 
+        // If an auth URL appears AFTER the last Running state, re-auth is needed
+        // (handles stale Running entries in syslog after reinstall or token expiry)
+        if (isRunning && latestUrl) {
+            var lastRunIdx = txt.lastIndexOf('-> Running');
+            var urlSnippet = latestUrl.substring(0, 60);
+            var lastUrlIdx = -1, upos = 0, uidx;
+            while ((uidx = txt.indexOf(urlSnippet, upos)) !== -1) { lastUrlIdx = uidx; upos = uidx + 1; }
+            if (lastUrlIdx > lastRunIdx) isRunning = false;
+        }
+
         if (isRunning) return { state: 'connected', url: null, ip: tsIP, node: node, tailnet: tailnet, version: version };
         if (latestUrl) return { state: 'connecting', url: latestUrl, ip: null, node: null, tailnet: null, version: version };
         if (/Starting Tailscale|tailscaled.*start|logtail started/.test(txt)) return { state: 'connecting', url: null, ip: null, node: null, tailnet: null, version: version };
