@@ -62,7 +62,7 @@ Once installed:
 
 ## � Proxy Support
 
-The **custom** variant exposes two local proxy endpoints that route outbound traffic through the Tailscale tunnel:
+All non-ROOT variants expose two local proxy endpoints that route outbound traffic through the Tailscale tunnel:
 
 ### HTTP CONNECT Proxy — `http://127.0.0.1:8080`
 
