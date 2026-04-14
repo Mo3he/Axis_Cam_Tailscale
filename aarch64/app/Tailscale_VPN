@@ -17,6 +17,7 @@ logger -t "Tailscale_VPN" "Starting tailscaled daemon (userspace networking)"
     --state="$STATE_DIR/tailscaled.state" \
     --socket="$STATE_DIR/tailscaled.sock" \
     --socks5-server=localhost:1055 \
+    --outbound-http-proxy-listener=localhost:8080 \
     --tun=userspace-networking \
     2>&1 | logger -t "Tailscale_VPN" &
 TAILSCALED_PID=$!
@@ -27,5 +28,7 @@ logger -t "Tailscale_VPN" "Connecting to Tailscale network (scroll to bottom for
 "$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" up 2>&1 | logger -t "Tailscale_VPN"
 
 logger -t "Tailscale_VPN" "Tailscale VPN is running"
+logger -t "Tailscale_VPN" "HTTP/HTTPS proxy: http://127.0.0.1:8080"
+logger -t "Tailscale_VPN" "SOCKS5 proxy:     127.0.0.1:1055"
 wait $TAILSCALED_PID
 logger -t "Tailscale_VPN" "tailscaled exited"
