@@ -7,6 +7,7 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 - ✅ Secure remote access to cameras  
 - ✅ Easy to install via EAP package  
 - ✅ Works on **Axis OS 12+** (non-root version)  
+- ✅ Works on **legacy Axis OS 9.x / 10.x** via the ACAP 3 variant  
 - ✅ Based on **WireGuard VPN** technology  
 
 [![Releases](https://img.shields.io/github/v/release/Mo3he/Axis_Cam_Tailscale)](https://github.com/Mo3he/Axis_Cam_Tailscale/releases)  
@@ -23,8 +24,8 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 
 - [📥 Installation](#-installation)  
 - [🚀 Usage](#-usage)  
-- [� Proxy Support](#-proxy-support)  
-- [�🔄 Updating Tailscale](#-updating-tailscale)  
+- [🔌 Proxy Support](#-proxy-support)  
+- [🔄 Updating Tailscale](#-updating-tailscale)  
 - [🧪 Testers Needed](#-testers-needed)  
 - [🎉 Good News](#-good-news)  
 - [🎯 Purpose](#-purpose)  
@@ -125,6 +126,10 @@ Tailscale ACAP can now run **without root privileges**, making it compatible wit
 
 For **full networking features**, use the **ROOT** version on Axis OS < 12.
 
+### Legacy camera support (Axis OS 9.x / 10.x)
+
+An **ACAP 3** variant (`armv7hf_acap3`) is available for older cameras that do not support ACAP 4 / Axis OS 11+. It uses the same userspace networking mode and web UI, built against the ACAP SDK 3.5 toolchain.
+
 ---
 
 ## 🎯 Purpose
@@ -149,6 +154,18 @@ Adding a VPN client directly to the camera enables:
 ## 🖥️ Compatibility
 
 The Tailscale ACAP is compatible with Axis cameras with **ARM** and **AARCH64**-based SoCs.
+
+| Variant | Architecture | Axis OS | Notes |
+|---|---|---|---|
+| `armv7hf` | ARMv7 | 11+ (ACAP 4) | Standard, userspace networking |
+| `aarch64` | AArch64 | 11+ (ACAP 4) | Standard, userspace networking |
+| `armv7hf_root` | ARMv7 | 10 or earlier | Full kernel networking (root) |
+| `aarch64_root` | AArch64 | 10 or earlier | Full kernel networking (root) |
+| `armv7hf_custom` | ARMv7 | 11+ (ACAP 4) | Custom server / Headscale support |
+| `aarch64_custom` | AArch64 | 11+ (ACAP 4) | Custom server / Headscale support |
+| `armv7hf_acap3` | ARMv7 | **9.x – 10.x** | Legacy cameras, ACAP SDK 3 |
+
+> Not sure which variant to use? Check **System → Properties → Firmware version** on your camera. Axis OS 11+ → use the standard variant. Axis OS 9/10 on ARMv7 → use `armv7hf_acap3`.
 
 You can verify your device details using the following command:
 
