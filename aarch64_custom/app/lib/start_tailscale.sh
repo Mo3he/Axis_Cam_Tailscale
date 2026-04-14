@@ -42,6 +42,7 @@ $TAILSCALED_PATH \
     --state="$STATE_DIR/tailscaled.state" \
     --socket=$SOCKET_PATH \
     --socks5-server=localhost:1055 \
+    --outbound-http-proxy-listener=localhost:8080 \
     --tun=userspace-networking \
     2>&1 | logger -t "tailscale_script" &
 TAILSCALED_PID=$!
@@ -76,6 +77,8 @@ fi
 
 # Keep the script running to maintain the tailscaled process
 logger -t "tailscale_script" "Tailscale VPN is running"
+logger -t "tailscale_script" "HTTP/HTTPS proxy: http://127.0.0.1:8080"
+logger -t "tailscale_script" "SOCKS5 proxy:     127.0.0.1:1055"
 logger -t "tailscale_script" "To change settings, modify parameters in ACAP web interface"
 
 # Wait for tailscaled process to exit

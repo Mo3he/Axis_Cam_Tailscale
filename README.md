@@ -23,7 +23,8 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 
 - [📥 Installation](#-installation)  
 - [🚀 Usage](#-usage)  
-- [🔄 Updating Tailscale](#-updating-tailscale)  
+- [� Proxy Support](#-proxy-support)  
+- [�🔄 Updating Tailscale](#-updating-tailscale)  
 - [🧪 Testers Needed](#-testers-needed)  
 - [🎉 Good News](#-good-news)  
 - [🎯 Purpose](#-purpose)  
@@ -59,7 +60,30 @@ Once installed:
 
 ---
 
-## 🔄 Updating Tailscale
+## � Proxy Support
+
+The **custom** variant exposes two local proxy endpoints that route outbound traffic through the Tailscale tunnel:
+
+### HTTP CONNECT Proxy — `http://127.0.0.1:8080`
+
+Routes HTTP and HTTPS traffic. Set this wherever an HTTP/HTTPS proxy field is available on the camera:
+
+| Location | Field | Value |
+|---|---|---|
+| System → Network → Global proxies | HTTP proxy | `http://127.0.0.1:8080` |
+| System → Network → Global proxies | HTTPS proxy | `http://127.0.0.1:8080` |
+| System → MQTT → Broker | HTTP proxy | `http://127.0.0.1:8080` |
+| System → MQTT → Broker | HTTPS proxy | `http://127.0.0.1:8080` |
+
+### SOCKS5 Proxy — `127.0.0.1:1055`
+
+For ACAP apps or services that support SOCKS5, set their proxy to `127.0.0.1:1055`.
+
+> ℹ️ Proxy addresses are shown in the **Connection Details** panel of the web UI when connected.
+
+---
+
+## �🔄 Updating Tailscale
 
 - New `.eap` files are auto-built and released **weekly** (if a new Tailscale version is available).  
 - To update, simply install the new `.eap` over the existing one.  
