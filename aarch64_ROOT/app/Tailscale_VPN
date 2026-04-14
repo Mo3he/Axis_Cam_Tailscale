@@ -22,7 +22,7 @@ TAILSCALED_PID=$!
 sleep 2
 
 logger -t "Tailscale_VPN" "Connecting to Tailscale network (scroll to bottom for auth URL if prompted)"
-"$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" up --accept-routes 2>&1 | logger -t "Tailscale_VPN"
+"$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" up --accept-routes --hostname="$(hostname)" 2>&1 | logger -t "Tailscale_VPN"
 
 logger -t "Tailscale_VPN" "Tailscale VPN is running"
 wait $TAILSCALED_PID

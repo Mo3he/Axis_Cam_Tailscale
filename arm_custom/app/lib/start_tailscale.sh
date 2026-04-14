@@ -51,7 +51,7 @@ TAILSCALED_PID=$!
 sleep 2
 
 # Build up the command based on available parameters
-TAILSCALE_CMD="$TAILSCALE_PATH --socket=$SOCKET_PATH up"
+TAILSCALE_CMD="$TAILSCALE_PATH --socket=$SOCKET_PATH up --hostname=$(hostname)"
 
 if [ -n "$CUSTOM_SERVER" ]; then
     logger -t "tailscale_script" "Using custom server: $CUSTOM_SERVER"
