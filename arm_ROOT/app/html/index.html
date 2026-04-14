@@ -448,17 +448,18 @@
             tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
         }
 
-        var nodeMatches = txt.match(/popBrowserAuthNow\("([^"]+)"\)/g);
-        if (!nodeMatches) nodeMatches = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/g);
+        // Primary: extract hostname from Axis syslog header (always the real device hostname)
         var node = null;
-        if (nodeMatches) {
-            var nm = nodeMatches[nodeMatches.length - 1].match(/"([^"]+)"/);
-            if (nm) node = nm[1];
-        }
+        var hostLine = txt.match(/\d{4}-\d{2}-\d{2}T[\d:.]+[+-]\d{2}:\d{2}\s+(\S+)\s+\[/);
+        if (hostLine) node = hostLine[1];
+        // Fallback: popBrowserAuthNow/StartLoginInteractiveAs (may contain stale acap-tailscale_vpn)
         if (!node) {
-            // Extract hostname from Axis syslog format: "2026-01-01T...+00:00 Hostname [ NOTICE  ]"
-            var hostLine = txt.match(/\d{4}-\d{2}-\d{2}T[\d:.]+[+-]\d{2}:\d{2}\s+(\S+)\s+\[/);
-            if (hostLine) node = hostLine[1];
+            var nodeMatches = txt.match(/popBrowserAuthNow\("([^"]+)"\)/g);
+            if (!nodeMatches) nodeMatches = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/g);
+            if (nodeMatches) {
+                var nm = nodeMatches[nodeMatches.length - 1].match(/"([^"]+)"/);
+                if (nm) node = nm[1];
+            }
         }
 
         var loginMatches = txt.match(/active login:\s+\S+/g);
