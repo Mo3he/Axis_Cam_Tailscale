@@ -15,7 +15,7 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 ![Total Downloads](https://img.shields.io/github/downloads/Mo3he/Axis_Cam_Tailscale/total?style=flat&label=Downloads&color=blue)  
 [![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-lightgrey?logo=github)](https://github.com/sponsors/Mo3he)  
 
-> **Disclaimer:** This is an independent, community-developed ACAP package and is not an official Axis Communications product. It was developed entirely on personal time and is not affiliated with, endorsed by, or supported by Axis Communications AB. Use it at your own risk. For official Axis software, visit axis.com
+> **Disclaimer:** This is an independent, community-developed ACAP package and is not an official Axis Communications product. It is not affiliated with, endorsed by, or supported by Axis Communications AB. Use it at your own risk. For official Axis software, visit axis.com 
 
 > **Tailscale Notice:** Tailscale is a product of Tailscale Inc. This package independently redistributes the Tailscale binaries under the [BSD 3-Clause License](LICENSE) and is not affiliated with, endorsed by, or supported by Tailscale Inc. For the official Tailscale client, visit [tailscale.com](https://tailscale.com).
 ---
