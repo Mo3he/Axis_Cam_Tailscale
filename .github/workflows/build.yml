@@ -128,12 +128,21 @@ jobs:
             VARIANT="_root"
           elif [[ "$FOLDER_NAME" == *_custom ]]; then
             VARIANT="_custom"
+          elif [[ "$FOLDER_NAME" == *_acap3 ]]; then
+            VARIANT="_acap3"
           else
             VARIANT=""
           fi
 
-          # Update manifest version
-          sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION}\"/" "$folder/app/manifest.json"
+          # Update version — manifest.json for ACAP 4, package.conf for ACAP 3
+          if [[ -f "$folder/app/manifest.json" ]]; then
+            sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION}\"/" "$folder/app/manifest.json"
+          elif [[ -f "$folder/app/package.conf" ]]; then
+            IFS='.' read -r MAJOR MINOR MICRO <<< "${RELEASE_VERSION}"
+            sed -i "s/^APPMAJORVERSION=.*/APPMAJORVERSION=${MAJOR}/" "$folder/app/package.conf"
+            sed -i "s/^APPMINORVERSION=.*/APPMINORVERSION=${MINOR}/" "$folder/app/package.conf"
+            sed -i "s/^APPMICROVERSION=.*/APPMICROVERSION=${MICRO}/" "$folder/app/package.conf"
+          fi
 
           # Docker build
           TAG_NAME=$(echo "$FOLDER_NAME" | tr '[:upper:]' '[:lower:]' | tr '/ ' '_')  # lowercase and clean
@@ -165,8 +174,8 @@ jobs:
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        # Only commit manifests; do not track release artifacts
-        git add */app/manifest.json
+        # Only commit manifests and ACAP 3 package.conf; do not track release artifacts
+        git add */app/manifest.json arm_acap3/app/package.conf
         if git diff --cached --quiet; then
           echo "No changes to commit"
         else
