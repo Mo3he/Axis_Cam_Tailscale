@@ -6,7 +6,7 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 
 - Secure remote access to cameras  
 - Easy to install via EAP package  
-- Works on **Axis OS 12+** (non-root version)  
+- Works on **Axis OS 11.11+** (non-root version)  
 - Works on **legacy Axis OS 9.x / 10.x** via the ACAP 3 variant  
 - Based on **WireGuard VPN** technology  
 
@@ -125,11 +125,11 @@ docker cp $(docker create <package_name>):/opt/app ./build
 
 ## Good News
 
-Tailscale ACAP can now run **without root privileges**, making it compatible with **Axis OS 12+**.  
+Tailscale ACAP can now run **without root privileges**, making it compatible with **Axis OS 11.11+**.  
 
 - Runs in **user space networking mode**.  
 
-For **full networking features**, use the **ROOT** version on Axis OS < 12.
+For **full kernel networking**, use the **ROOT** version (also requires Axis OS 11.11+).
 
 ### Legacy camera support (Axis OS 9.x / 10.x)
 
@@ -164,11 +164,11 @@ The Tailscale ACAP is compatible with Axis cameras with **ARM** and **AARCH64**-
 |---|---|---|---|
 | `aarch64` | AArch64 | 11.11+ (ACAP 4) | Standard, userspace networking, configurable proxy ports |
 | `armv7hf` | ARMv7 | 11.11+ (ACAP 4) | Standard, userspace networking, configurable proxy ports |
-| `aarch64_root` | AArch64 | 10 or earlier | Full kernel networking (root) |
-| `armv7hf_root` | ARMv7 | 10 or earlier | Full kernel networking (root) |
+| `aarch64_root` | AArch64 | 11.11+ (ACAP 4) | Full kernel networking (root) |
+| `armv7hf_root` | ARMv7 | 11.11+ (ACAP 4) | Full kernel networking (root) |
 | `armv7hf_acap3` | ARMv7 | **9.x – 10.x** | Legacy cameras, ACAP SDK 3 |
 
-> Not sure which variant to use? Check **System → Properties → Firmware version** on your camera. Axis OS 11.11+ → use the standard variant (`aarch64` or `armv7hf`). Axis OS 9/10 on ARMv7 → use `armv7hf_acap3`. Axis OS 10 or earlier on AArch64 → use `aarch64_root`.
+> Not sure which variant to use? Check **System → Properties → Firmware version** on your camera. Axis OS 11.11+ → use the standard variant (`aarch64` or `armv7hf`), or the ROOT variant if you need kernel networking. Axis OS 9.x/10.x on ARMv7 → use `armv7hf_acap3`.
 
 You can verify your device details using the following command:
 
