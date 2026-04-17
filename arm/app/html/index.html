@@ -407,22 +407,22 @@
     <div class="settings-form">
         <div class="settings-row">
             <label class="settings-label" for="input-server">Custom Server URL</label>
-            <input class="settings-input" id="input-server" type="text" placeholder="https://controlplane.example.com (leave blank for Tailscale)">
+            <input class="settings-input" id="input-server" type="text" autocomplete="off" placeholder="https://controlplane.example.com (leave blank for Tailscale)">
             <span class="settings-hint">Leave blank to use official Tailscale servers.</span>
         </div>
         <div class="settings-row">
             <label class="settings-label" for="input-authkey">Auth Key</label>
-            <input class="settings-input" id="input-authkey" type="password" placeholder="tskey-auth-... (leave blank to use browser login)">
+            <input class="settings-input" id="input-authkey" type="password" autocomplete="off" placeholder="tskey-auth-... (leave blank to use browser login)">
             <span class="settings-hint">One-time use. Cleared automatically after first successful connection.</span>
         </div>
         <div class="settings-row">
             <label class="settings-label" for="input-http-port">HTTP Proxy Port</label>
-            <input class="settings-input" id="input-http-port" type="text" placeholder="8080">
+            <input class="settings-input" id="input-http-port" type="text" autocomplete="off" placeholder="8080">
             <span class="settings-hint">Port for the outbound HTTP/HTTPS proxy. Default: 8080.</span>
         </div>
         <div class="settings-row">
             <label class="settings-label" for="input-socks-port">SOCKS5 Proxy Port</label>
-            <input class="settings-input" id="input-socks-port" type="text" placeholder="1080">
+            <input class="settings-input" id="input-socks-port" type="text" autocomplete="off" placeholder="1080">
             <span class="settings-hint">Port for the SOCKS5 proxy. Default: 1080.</span>
         </div>
         <div class="settings-actions">
