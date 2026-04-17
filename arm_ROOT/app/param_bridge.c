@@ -27,6 +27,7 @@
 
 static pid_t child_pid = -1;
 static guint reload_timer_id = 0;
+static AXParameter *g_ax_handle = NULL;
 
 static char *cfg_custom_server = NULL;
 static char *cfg_auth_key      = NULL;
@@ -86,7 +87,7 @@ static gboolean watchdog_cb(gpointer G_GNUC_UNUSED data) {
             /* If child exited 0, auth succeeded — clear AuthKey via axparameter */
             if (exit_code == 0 && g_ax_handle && cfg_auth_key && *cfg_auth_key) {
                 GError *err = NULL;
-                if (ax_parameter_set(g_ax_handle, "AuthKey", "", &err)) {
+                if (ax_parameter_set(g_ax_handle, "AuthKey", "", TRUE, &err)) {
                     free(cfg_auth_key); cfg_auth_key = strdup("");
                     syslog(LOG_INFO, "AuthKey cleared after successful auth");
                 } else {
@@ -135,8 +136,6 @@ static void write_config_file(void) {
     syslog(LOG_INFO, "config updated: server=%s",
            cache_get(&cfg_custom_server, "(default)"));
 }
-
-static AXParameter *g_ax_handle = NULL;
 
 static gboolean debounced_restart(gpointer G_GNUC_UNUSED data) {
     reload_timer_id = 0;
