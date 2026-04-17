@@ -126,8 +126,6 @@ jobs:
           # Detect variant suffix for .eap naming
           if [[ "$FOLDER_NAME" == *_ROOT ]]; then
             VARIANT="_root"
-          elif [[ "$FOLDER_NAME" == *_custom ]]; then
-            VARIANT="_custom"
           elif [[ "$FOLDER_NAME" == *_acap3 ]]; then
             VARIANT="_acap3"
           else
@@ -152,7 +150,9 @@ jobs:
           # Extract .eap files into build folder
           EAP_OUTPUT="./build/${TAG_NAME}"
           mkdir -p "$EAP_OUTPUT"
-          docker cp $(docker create "$TAG_NAME"):/opt/app "$EAP_OUTPUT"
+          CID=$(docker create "$TAG_NAME")
+          docker cp "$CID":/opt/app "$EAP_OUTPUT"
+          docker rm "$CID" >/dev/null
 
           # Move all .eap files to releases folder, append variant if needed
           find "$EAP_OUTPUT" -type f -name "*.eap" | while read eap; do

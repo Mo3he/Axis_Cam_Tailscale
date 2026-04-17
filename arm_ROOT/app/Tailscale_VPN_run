@@ -1,0 +1,48 @@
+#!/bin/sh
+# Tailscale VPN run script (ROOT / kernel networking variant).
+# Sources config from params.conf written by param_bridge.
+killall tailscaled 2>/dev/null || true
+
+APP_DIR="/usr/local/packages/Tailscale_VPN"
+STATE_DIR="$APP_DIR/localdata"
+TAILSCALED_PATH="$APP_DIR/lib/tailscaled"
+TAILSCALE_PATH="$APP_DIR/lib/tailscale"
+SOCKET_PATH="$STATE_DIR/tailscaled.sock"
+
+mkdir -p "$STATE_DIR"
+chmod 755 $TAILSCALED_PATH
+chmod 755 $TAILSCALE_PATH
+
+CUSTOM_SERVER=""
+AUTH_KEY=""
+
+if [ -f "$STATE_DIR/params.conf" ]; then
+    . "$STATE_DIR/params.conf"
+fi
+
+logger -t "Tailscale_VPN" "Starting (root mode): custom_server=${CUSTOM_SERVER:-(default)}"
+
+$TAILSCALED_PATH \
+    --state="$STATE_DIR/tailscaled.state" \
+    --socket=$SOCKET_PATH \
+    >/dev/null 2>&1 &
+TAILSCALED_PID=$!
+
+sleep 2
+
+TAILSCALE_CMD="$TAILSCALE_PATH --socket=$SOCKET_PATH up --accept-routes --hostname=$(hostname)"
+
+if [ -n "$CUSTOM_SERVER" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --login-server $CUSTOM_SERVER"
+fi
+
+if [ -n "$AUTH_KEY" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --authkey $AUTH_KEY"
+fi
+
+eval $TAILSCALE_CMD
+UP_EXIT=$?
+
+logger -t "Tailscale_VPN" "Tailscale VPN is running (root mode)"
+
+wait $TAILSCALED_PID

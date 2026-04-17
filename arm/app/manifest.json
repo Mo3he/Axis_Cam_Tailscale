@@ -1,5 +1,5 @@
 {
-    "schemaVersion": "1.3",
+    "schemaVersion": "1.7.0",
     "acapPackageConf": {
         "setup": {
             "appName": "Tailscale_VPN",
@@ -12,7 +12,29 @@
             "architecture": "armv7hf"
         },
         "configuration": {
-            "settingPage": "index.html"
+            "settingPage": "index.html",
+            "paramConfig": [
+                {
+                    "name": "CustomServer",
+                    "default": "",
+                    "type": "string"
+                },
+                {
+                    "name": "AuthKey",
+                    "default": "",
+                    "type": "string"
+                },
+                {
+                    "name": "HttpProxyPort",
+                    "default": "8080",
+                    "type": "string"
+                },
+                {
+                    "name": "Socks5Port",
+                    "default": "1080",
+                    "type": "string"
+                }
+            ]
         }
     }
 }

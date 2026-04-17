@@ -238,6 +238,40 @@
         .log-line .msg-err { color: var(--red); }
         .log-line .msg-ok { color: var(--green); }
 
+        /* Settings form */
+        .settings-form { display: flex; flex-direction: column; gap: 12px; }
+        .settings-row { display: flex; flex-direction: column; gap: 4px; }
+        .settings-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
+        .settings-input {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: var(--mono);
+            padding: 8px 10px;
+            width: 100%;
+            outline: none;
+        }
+        .settings-input:focus { border-color: var(--accent); }
+        .settings-hint { font-size: 11px; color: var(--muted); }
+        .settings-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 4px; }
+        .save-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .save-btn:hover { opacity: 0.9; }
+        .save-btn:disabled { opacity: 0.5; cursor: default; }
+        .save-status { font-size: 12px; color: var(--muted); }
+        .save-status.ok { color: var(--green); }
+        .save-status.err { color: var(--red); }
+
         /* Refresh indicator */
         .refresh-bar {
             display: flex;
@@ -361,6 +395,52 @@
     </div>
     <div style="margin-top:14px;text-align:right;">
         <button id="check-update-btn" class="log-toggle">Check for Updates</button>
+    </div>
+</div>
+
+<!-- Proxy Info (always visible) -->
+<div class="card">
+    <div class="card-title">Proxy Configuration</div>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">HTTP/HTTPS Proxy</div>
+            <div class="info-value" id="ts-http-proxy">http://127.0.0.1:8080</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">SOCKS5 Proxy</div>
+            <div class="info-value" id="ts-socks-proxy">127.0.0.1:1080</div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings -->
+<div class="card">
+    <div class="card-title">Settings</div>
+    <div class="settings-form">
+        <div class="settings-row">
+            <label class="settings-label" for="input-server">Custom Server URL</label>
+            <input class="settings-input" id="input-server" type="text" placeholder="https://controlplane.example.com (leave blank for Tailscale)">
+            <span class="settings-hint">Leave blank to use official Tailscale servers.</span>
+        </div>
+        <div class="settings-row">
+            <label class="settings-label" for="input-authkey">Auth Key</label>
+            <input class="settings-input" id="input-authkey" type="password" placeholder="tskey-auth-... (leave blank to use browser login)">
+            <span class="settings-hint">One-time use. Cleared automatically after first successful connection.</span>
+        </div>
+        <div class="settings-row">
+            <label class="settings-label" for="input-http-port">HTTP Proxy Port</label>
+            <input class="settings-input" id="input-http-port" type="text" placeholder="8080">
+            <span class="settings-hint">Port for the outbound HTTP/HTTPS proxy. Default: 8080.</span>
+        </div>
+        <div class="settings-row">
+            <label class="settings-label" for="input-socks-port">SOCKS5 Proxy Port</label>
+            <input class="settings-input" id="input-socks-port" type="text" placeholder="1080">
+            <span class="settings-hint">Port for the SOCKS5 proxy. Default: 1080.</span>
+        </div>
+        <div class="settings-actions">
+            <span class="save-status" id="save-status"></span>
+            <button class="save-btn" id="save-btn">Save &amp; Restart</button>
+        </div>
     </div>
 </div>
 
@@ -494,19 +574,34 @@
             }
         }
 
+        // Parse proxy ports from log — use last match so old entries don't win
+        var httpPort = null;
+        var httpProxyMatches = txt.match(/HTTP\/HTTPS proxy: http:\/\/127\.0\.0\.1:(\d+)/g);
+        if (httpProxyMatches) { var m = httpProxyMatches[httpProxyMatches.length - 1].match(/:(\d+)$/); if (m) httpPort = m[1]; }
+        var socksPort = null;
+        var socksProxyMatches = txt.match(/SOCKS5 proxy:\s+127\.0\.0\.1:(\d+)/g);
+        if (socksProxyMatches) { var ms = socksProxyMatches[socksProxyMatches.length - 1].match(/:(\d+)$/); if (ms) socksPort = ms[1]; }
+
         // Cache when found, restore from cache when missing
         cacheSet('ip', tsIP); cacheSet('node', node); cacheSet('tailnet', tailnet); cacheSet('version', version);
+        cacheSet('http-port', httpPort); cacheSet('socks-port', socksPort);
         tsIP = tsIP || cacheGet('ip');
         node = node || cacheGet('node');
         tailnet = tailnet || cacheGet('tailnet');
         version = version || cacheGet('version');
+        httpPort = httpPort || cacheGet('http-port');
+        socksPort = socksPort || cacheGet('socks-port');
 
         var stateLines = txt.match(/Switching ipn state [^\n]+/g) || [];
         var lastState = stateLines.length ? stateLines[stateLines.length - 1] : '';
-        var isRunning = /-> Running/.test(lastState) || /Tailscale VPN is running/.test(txt);
-        // Detect running even after syslog rotation (daemon active but startup lines gone)
-        if (!isRunning && !latestUrl) {
-            isRunning = /health\(warnable=[^)]+\): ok/.test(txt) ||
+        var isRunning = /-> Running/.test(lastState);
+
+        // Fallbacks only when syslog has rotated and no state transitions are visible.
+        // If we CAN see state lines (e.g. "-> NeedsLogin"), trust them over our own
+        // "Tailscale VPN is running" message which stays in syslog indefinitely.
+        if (!isRunning && stateLines.length === 0) {
+            isRunning = /Tailscale VPN is running/.test(txt) ||
+                        /health\(warnable=[^)]+\): ok/.test(txt) ||
                         /derp-\d+ connected/.test(txt) ||
                         /c2n: GET/.test(txt) ||
                         /localapi:/.test(txt);
@@ -515,17 +610,22 @@
         // If an auth URL appears AFTER the last Running state, re-auth is needed
         // (handles stale Running entries in syslog after reinstall or token expiry)
         if (isRunning && latestUrl) {
+            // Use the LATEST of '-> Running' (tailscaled state) or 'Tailscale VPN is running'
+            // (our shell log). The shell log is written AFTER auth completes, so it correctly
+            // post-dates the auth URL when connection succeeds.
             var lastRunIdx = txt.lastIndexOf('-> Running');
+            var lastRunningMsgIdx = txt.lastIndexOf('Tailscale VPN is running');
+            if (lastRunningMsgIdx > lastRunIdx) lastRunIdx = lastRunningMsgIdx;
             var urlSnippet = latestUrl.substring(0, 60);
             var lastUrlIdx = -1, upos = 0, uidx;
             while ((uidx = txt.indexOf(urlSnippet, upos)) !== -1) { lastUrlIdx = uidx; upos = uidx + 1; }
             if (lastUrlIdx > lastRunIdx) isRunning = false;
         }
 
-        if (isRunning) return { state: 'connected', url: null, ip: tsIP, node: node, tailnet: tailnet, version: version };
-        if (latestUrl) return { state: 'connecting', url: latestUrl, ip: null, node: null, tailnet: null, version: version };
-        if (/Starting Tailscale|tailscaled.*start|logtail started/.test(txt)) return { state: 'connecting', url: null, ip: null, node: null, tailnet: null, version: version };
-        return { state: 'disconnected', url: null, ip: null, node: null, tailnet: null, version: version };
+        if (isRunning) return { state: 'connected', url: null, ip: tsIP, node: node, tailnet: tailnet, version: version, httpPort: httpPort, socksPort: socksPort };
+        if (latestUrl) return { state: 'connecting', url: latestUrl, ip: null, node: null, tailnet: null, version: version, httpPort: httpPort, socksPort: socksPort };
+        if (/Starting Tailscale|tailscaled.*start|logtail started/.test(txt)) return { state: 'connecting', url: null, ip: null, node: null, tailnet: null, version: version, httpPort: httpPort, socksPort: socksPort };
+        return { state: 'disconnected', url: null, ip: null, node: null, tailnet: null, version: version, httpPort: httpPort, socksPort: socksPort };
     }
 
     function classifyLine(msg) {
@@ -575,6 +675,10 @@
         } else {
             auth.style.display = 'none';
         }
+
+        // Proxy card is always visible — update ports whenever known
+        if (r.httpPort) document.getElementById('ts-http-proxy').textContent = 'http://127.0.0.1:' + r.httpPort;
+        if (r.socksPort) document.getElementById('ts-socks-proxy').textContent = '127.0.0.1:' + r.socksPort;
 
         if (r.state === 'connected') {
             document.getElementById('ts-ip').textContent = r.ip || '-';
@@ -680,6 +784,79 @@
         }
         return 0;
     }
+
+    // Settings — load current param values and save on submit
+    var PARAM_URL = '/axis-cgi/param.cgi';
+    var serverInput   = document.getElementById('input-server');
+    var authInput     = document.getElementById('input-authkey');
+    var httpPortInput = document.getElementById('input-http-port');
+    var socksPortInput= document.getElementById('input-socks-port');
+    var saveBtn       = document.getElementById('save-btn');
+    var saveStatus  = document.getElementById('save-status');
+
+    function loadSettings() {
+        fetch(PARAM_URL + '?action=list&group=root.' + APP, { credentials: 'same-origin' })
+            .then(function(r) { return r.text(); })
+            .then(function(txt) {
+                var sm = txt.match(/root\.\S+\.CustomServer=(.*)/);
+                var am = txt.match(/root\.\S+\.AuthKey=(.*)/);
+                var hm = txt.match(/root\.\S+\.HttpProxyPort=(.*)/);
+                var km = txt.match(/root\.\S+\.Socks5Port=(.*)/);
+                if (sm) serverInput.value    = sm[1].trim();
+                if (am) authInput.value      = am[1].trim();
+                if (hm) httpPortInput.value  = hm[1].trim();
+                if (km) socksPortInput.value = km[1].trim();
+                // Update proxy display card with authoritative param values
+                // and overwrite the localStorage cache so stale ports don't win on next render
+                var httpPort  = hm ? hm[1].trim() : null;
+                var socksPort = km ? km[1].trim() : null;
+                if (httpPort)  { cacheSet('http-port', httpPort);  document.getElementById('ts-http-proxy').textContent  = 'http://127.0.0.1:' + httpPort; }
+                if (socksPort) { cacheSet('socks-port', socksPort); document.getElementById('ts-socks-proxy').textContent = '127.0.0.1:' + socksPort; }
+            })
+            .catch(function() {});
+    }
+
+    function setStatus(msg, cls) {
+        saveStatus.textContent = msg;
+        saveStatus.className = 'save-status' + (cls ? ' ' + cls : '');
+        if (msg) setTimeout(function() { saveStatus.textContent = ''; saveStatus.className = 'save-status'; }, 4000);
+    }
+
+    saveBtn.addEventListener('click', function() {
+        saveBtn.disabled = true;
+        setStatus('Saving...', '');
+        var httpPort  = httpPortInput.value.trim()  || '8080';
+        var socksPort = socksPortInput.value.trim() || '1080';
+        var params = 'action=update' +
+            '&root.' + APP + '.CustomServer='   + encodeURIComponent(serverInput.value.trim()) +
+            '&root.' + APP + '.AuthKey='         + encodeURIComponent(authInput.value.trim()) +
+            '&root.' + APP + '.HttpProxyPort='   + encodeURIComponent(httpPort) +
+            '&root.' + APP + '.Socks5Port='      + encodeURIComponent(socksPort);
+        fetch(PARAM_URL, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        })
+        .then(function(r) { return r.text(); })
+        .then(function(txt) {
+            saveBtn.disabled = false;
+            if (/^OK/.test(txt.trim())) {
+                setStatus('Saved. Restarting...', 'ok');
+                // Restart the app so new settings take effect
+                return fetch('/axis-cgi/applications/control.cgi?action=restart&package=' + APP,
+                    { method: 'POST', credentials: 'same-origin' });
+            } else {
+                setStatus('Error: ' + txt.trim(), 'err');
+            }
+        })
+        .catch(function(e) {
+            saveBtn.disabled = false;
+            setStatus('Failed to save', 'err');
+        });
+    });
+
+    loadSettings();
 })();
 </script>
 
