@@ -24,10 +24,9 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 
 - [Installation](#installation)  
 - [Usage](#usage)  
+- [Settings](#settings)  
 - [Proxy Support](#proxy-support)  
 - [Updating Tailscale](#updating-tailscale)  
-- [Testers Needed](#testers-needed)  
-- [Good News](#good-news)  
 - [Purpose](#purpose)  
 - [Useful Links](#useful-links)  
 - [Compatibility](#compatibility)  
@@ -55,32 +54,48 @@ Once installed:
 
 ## Usage
 
-- Runs a startup script to set permissions and launch Tailscale.  
-- View logs via the **Open** button in the app.  
-- Authenticate using the provided URL.  
+- Runs a C-based parameter bridge (compiled via ACAP SDK 1.15.1) that reads settings from the ACAP parameter store and launches Tailscale.  
+- View logs and connection status via the **Open** button in the app.  
+- Authenticate using the provided URL, or pre-enter an auth key in **Settings**.  
+- Change the **Custom Server URL** in Settings to use a self-hosted [Headscale](https://headscale.net/) control server.
+- Parameter changes (ports, server URL, auth key) are applied automatically without needing to reinstall the app.
 
 ---
 
-## Proxy Support
+## Settings
 
-All non-ROOT variants expose two local proxy endpoints that route outbound traffic through the Tailscale tunnel:
+All parameters are configurable via the web UI (**Open → Settings** card) and take effect immediately without reinstalling:
 
-### HTTP CONNECT Proxy — `http://127.0.0.1:8080`
+| Parameter | Default | Description |
+|---|---|---|
+| Custom Server URL | *(empty)* | Control server URL for [Headscale](https://headscale.net/) or other self-hosted servers. Leave blank to use Tailscale's official servers. |
+| Auth Key | *(empty)* | Pre-authentication key (`tskey-auth-...`). Cleared automatically after first successful connection. Leave blank to authenticate via browser. |
+| HTTP Proxy Port | `8080` | Port for the outbound HTTP/HTTPS proxy. |
+| SOCKS5 Proxy Port | `1080` | Port for the outbound SOCKS5 proxy. |
+
+---
+
+
+All non-ROOT variants expose two local proxy endpoints that route outbound traffic through the Tailscale tunnel. The ports are configurable via **Settings → HTTP Proxy Port / SOCKS5 Proxy Port** in the web UI.
+
+### HTTP CONNECT Proxy — `http://127.0.0.1:8080` (default)
 
 Routes HTTP and HTTPS traffic. Set this wherever an HTTP/HTTPS proxy field is available on the camera:
 
 | Location | Field | Value |
 |---|---|---|
-| System → Network → Global proxies | HTTP proxy | `http://127.0.0.1:8080` |
-| System → Network → Global proxies | HTTPS proxy | `http://127.0.0.1:8080` |
-| System → MQTT → Broker | HTTP proxy | `http://127.0.0.1:8080` |
-| System → MQTT → Broker | HTTPS proxy | `http://127.0.0.1:8080` |
+| System → Network → Global proxies | HTTP proxy | `http://127.0.0.1:<port>` |
+| System → Network → Global proxies | HTTPS proxy | `http://127.0.0.1:<port>` |
+| System → MQTT → Broker | HTTP proxy | `http://127.0.0.1:<port>` |
+| System → MQTT → Broker | HTTPS proxy | `http://127.0.0.1:<port>` |
 
-### SOCKS5 Proxy — `127.0.0.1:1055`
+### SOCKS5 Proxy — `127.0.0.1:1080` (default)
 
-For ACAP apps or services that support SOCKS5, set their proxy to `127.0.0.1:1055`.
+For ACAP apps or services that support SOCKS5, set their proxy to `127.0.0.1:<port>`.
 
-> Proxy addresses are shown in the **Connection Details** panel of the web UI when connected.
+> The active proxy addresses are always shown in the **Proxy Configuration** card of the web UI.
+
+> If you change a port that is already in use by another process, the app will log an error and exit rather than silently falling back to a different port.
 
 ---
 
@@ -105,16 +120,6 @@ From the main directory of the version you want (`arm` / `aarch64`):
 docker build --tag <package_name> .
 docker cp $(docker create <package_name>):/opt/app ./build
 ```
-
----
-
-## Testers Needed
-
-A new **custom** version is available:
-- Allows setting a custom server and auth key (for [Headscale](https://headscale.net/)).  
-- Go to **Settings (⋮ → Settings)** to add your details.   
-
-Please give it a try and share your feedback!
 
 ---
 
@@ -157,15 +162,13 @@ The Tailscale ACAP is compatible with Axis cameras with **ARM** and **AARCH64**-
 
 | Variant | Architecture | Axis OS | Notes |
 |---|---|---|---|
-| `armv7hf` | ARMv7 | 11+ (ACAP 4) | Standard, userspace networking |
-| `aarch64` | AArch64 | 11+ (ACAP 4) | Standard, userspace networking |
-| `armv7hf_root` | ARMv7 | 10 or earlier | Full kernel networking (root) |
+| `aarch64` | AArch64 | 11.11+ (ACAP 4) | Standard, userspace networking, configurable proxy ports |
+| `armv7hf` | ARMv7 | 11.11+ (ACAP 4) | Standard, userspace networking, configurable proxy ports |
 | `aarch64_root` | AArch64 | 10 or earlier | Full kernel networking (root) |
-| `armv7hf_custom` | ARMv7 | 11+ (ACAP 4) | Custom server / Headscale support |
-| `aarch64_custom` | AArch64 | 11+ (ACAP 4) | Custom server / Headscale support |
+| `armv7hf_root` | ARMv7 | 10 or earlier | Full kernel networking (root) |
 | `armv7hf_acap3` | ARMv7 | **9.x – 10.x** | Legacy cameras, ACAP SDK 3 |
 
-> Not sure which variant to use? Check **System → Properties → Firmware version** on your camera. Axis OS 11+ → use the standard variant. Axis OS 9/10 on ARMv7 → use `armv7hf_acap3`.
+> Not sure which variant to use? Check **System → Properties → Firmware version** on your camera. Axis OS 11.11+ → use the standard variant (`aarch64` or `armv7hf`). Axis OS 9/10 on ARMv7 → use `armv7hf_acap3`. Axis OS 10 or earlier on AArch64 → use `aarch64_root`.
 
 You can verify your device details using the following command:
 
