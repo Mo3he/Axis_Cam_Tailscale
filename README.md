@@ -195,6 +195,11 @@ AXIS OS 13 (scheduled for September 2026) introduces several breaking changes th
 - [ ] **Audit for executable stack usage** - Any ACAP compiled with an executable stack must be recompiled to comply with the new security restrictions in AXIS OS 13.
 - [ ] **Verify web UI works over HTTPS** - AXIS OS 13 enforces HTTPS-only connections by default. The bundled web UI must be tested to confirm it functions correctly under this constraint.
 
+### General Improvements
+
+- [ ] **Accept DNS from tailnet toggle** - Add an opt-in setting to the settings page that passes `--accept-dns=true` to `tailscale up`. Defaults to off to prevent Tailscale from overriding `resolv.conf` on cameras that don't need MagicDNS.
+- [ ] **Switch to tiny-tailscale binaries** - Evaluate replacing the bundled `tailscale` and `tailscaled` binaries with [tiny-tailscale](https://github.com/iamromulan/tiny-tailscale) builds. These combine both into a single binary, strip unused features, and are significantly smaller (~43% reduction), reducing install size and memory footprint across all architectures.
+
 ---
 
 ## Star History
