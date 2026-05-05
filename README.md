@@ -31,6 +31,7 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 - [Purpose](#purpose)  
 - [Useful Links](#useful-links)  
 - [Compatibility](#compatibility)  
+- [Roadmap](#roadmap)  
 - [Star History](#star-history)  
 - [Support](#support)  
 
@@ -179,6 +180,20 @@ curl --anyauth "*" -u <username>:<password> <device_ip>/axis-cgi/basicdeviceinfo
 
 > Replace `<device_ip>`, `<username>`, and `<password>` with your device credentials.  
 > Enclose your password in quotes `' '` if it contains special characters.
+
+---
+
+## Roadmap
+
+### AXIS OS 13 Preparation
+
+AXIS OS 13 (scheduled for September 2026) introduces several breaking changes that affect all ACAP applications. The following items are required to maintain compatibility. See the full [AXIS OS 13 breaking changes](https://www.axis.com/for-developers/news/AXIS-OS-13-breaking-changes) announcement for details.
+
+- [ ] **Recompile for 64-bit time (Y2038)** - AXIS OS 13 switches to a 64-bit time interface. All ACAP apps must be recompiled against the updated SDK. Cameras with incompatible apps installed will roll back the OS upgrade rather than proceed.
+- [ ] **Sign the ACAP via the Axis ACAP Portal** - AXIS OS 13 removes the ability to install unsigned applications in production environments. The app must be submitted and signed through the official Axis ACAP Portal to remain installable.
+- [ ] **Migrate to Manifest Schema v2** - The `manifest.json` must use Manifest Schema v2, including an explicit declaration of compatible AXIS OS versions, to satisfy the new signing and compatibility requirements.
+- [ ] **Audit for executable stack usage** - Any ACAP compiled with an executable stack must be recompiled to comply with the new security restrictions in AXIS OS 13.
+- [ ] **Verify web UI works over HTTPS** - AXIS OS 13 enforces HTTPS-only connections by default. The bundled web UI must be tested to confirm it functions correctly under this constraint.
 
 ---
 
