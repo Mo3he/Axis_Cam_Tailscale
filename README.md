@@ -74,6 +74,8 @@ All parameters are configurable via the web UI (**Open → Settings** card) and 
 | Auth Key | *(empty)* | Pre-authentication key (`tskey-auth-...`). Cleared automatically after first successful connection. Leave blank to authenticate via browser. |
 | HTTP Proxy Port | `8080` | Port for the outbound HTTP/HTTPS proxy. |
 | SOCKS5 Proxy Port | `1080` | Port for the outbound SOCKS5 proxy. |
+| Accept DNS | `off` | Passes `--accept-dns=true` to `tailscale up`. Allows the tailnet to push DNS settings to the camera. Off by default to avoid overriding the camera's DNS configuration. Not available on `armv7hf_acap3`. |
+| Accept Routes | `off` | Passes `--accept-routes=true` to `tailscale up`. Allows the camera to use subnet routes advertised by other nodes in the tailnet. Not available on `armv7hf_acap3`. |
 
 ---
 
@@ -197,8 +199,8 @@ AXIS OS 13 (scheduled for September 2026) introduces several breaking changes th
 
 ### General Improvements
 
-- [ ] **Accept DNS from tailnet toggle** - Add an opt-in setting to the settings page that passes `--accept-dns=true` to `tailscale up`. Defaults to off to prevent Tailscale from overriding `resolv.conf` on cameras that don't need MagicDNS.
-- [ ] **Accept routes toggle** - Add an opt-in setting that passes `--accept-routes=true` to `tailscale up`, allowing the camera to use subnet routes advertised by other nodes in the tailnet.
+- [x] **Accept DNS from tailnet toggle** - Add an opt-in setting to the settings page that passes `--accept-dns=true` to `tailscale up`. Defaults to off to prevent Tailscale from overriding `resolv.conf` on cameras that don't need MagicDNS.
+- [x] **Accept routes toggle** - Add an opt-in setting that passes `--accept-routes=true` to `tailscale up`, allowing the camera to use subnet routes advertised by other nodes in the tailnet.
 - [ ] **Switch to tiny-tailscale binaries** - Evaluate replacing the bundled `tailscale` and `tailscaled` binaries with [tiny-tailscale](https://github.com/iamromulan/tiny-tailscale) builds. These combine both into a single binary, strip unused features, and are significantly smaller (~43% reduction), reducing install size and memory footprint across all architectures.
 
 ---
