@@ -117,7 +117,8 @@ There is an important asymmetry to understand. Making the camera **reachable fro
 
 In short: on non-root builds the proxies cover apps that know how to use a proxy, but a system feature like "add network share" opens a raw socket that never touches the tunnel. The ROOT build is the clean way to let the camera *consume* tailnet services.
 
-### Plan B: reverse-SSH tunnel (works even on non-root)
+### Plan B: reverse-SSH tunnel
+> **Requires root on the camera.** Port 445 is privileged, so binding it needs a root-capable build (e.g. developer certificates installed).
 
 If you cannot use the ROOT build but still need the camera to mount a share on a machine that is on your tailnet, you can make the remote share appear **local** to the camera with a reverse SSH tunnel. Because the destination becomes `127.0.0.1`, the proxy-unaware SMB client never has to route over the tailnet.
 
@@ -129,8 +130,6 @@ ssh -R 445:localhost:445 root@<camera-tailscale-ip>
 ```
 
 Then, in the camera's **System → Storage → Add network share** dialog, use `127.0.0.1` as the share host and connect.
-
-> **Requires root on the camera.** Port 445 is privileged, so binding it needs a root-capable build (e.g. developer certificates installed, or the ROOT variant). If the share dialog ever supports a custom (unprivileged) SMB port, the same trick works as a non-root SSH user.
 
 ---
 
