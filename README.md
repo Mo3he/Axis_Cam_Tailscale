@@ -27,6 +27,7 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 - [Usage](#usage)  
 - [Settings](#settings)  
 - [Proxy Support](#proxy-support)  
+- [Accessing Tailnet Services from the Camera](#accessing-tailnet-services-from-the-camera)  
 - [Updating Tailscale](#updating-tailscale)  
 - [Purpose](#purpose)  
 - [Useful Links](#useful-links)  
@@ -100,6 +101,36 @@ For ACAP apps or services that support SOCKS5, set their proxy to `127.0.0.1:<po
 > The active proxy addresses are always shown in the **Proxy Configuration** card of the web UI.
 
 > If you change a port that is already in use by another process, the app will log an error and exit rather than silently falling back to a different port.
+
+---
+
+## Accessing Tailnet Services from the Camera
+
+There is an important asymmetry to understand. Making the camera **reachable from** the tailnet (browsing to it, VAPIX, SSH from another tailnet node) works on every build. The harder direction is the camera **reaching out to** a tailnet peer, for example mounting an SMB/CIFS network share hosted on another node. How well this works depends on which build you use.
+
+### Why the build matters
+
+| Build | Networking mode | Camera-initiated access to tailnet peers |
+|---|---|---|
+| Non-root (`aarch64`, `armv7hf`) and `armv7hf_acap3` | `--tun=userspace-networking` (no kernel `tailscale0` interface) | Only through the local **SOCKS5 / HTTP proxies**, and only for **proxy-aware** apps. Firmware system services (the SMB share client, NTP, etc.) are proxy-unaware, so they **cannot** reach a peer's `100.x` Tailscale IP directly. |
+| **ROOT** (`aarch64_root`, `armv7hf_root`) | Kernel networking with a real `tailscale0` interface | Peer `100.x` IPs are routable at the OS level, so firmware services **can** connect directly. Enable **Accept Routes** to also reach subnets behind other nodes. |
+
+In short: on non-root builds the proxies cover apps that know how to use a proxy, but a system feature like "add network share" opens a raw socket that never touches the tunnel. The ROOT build is the clean way to let the camera *consume* tailnet services.
+
+### Plan B: reverse-SSH tunnel (works even on non-root)
+
+If you cannot use the ROOT build but still need the camera to mount a share on a machine that is on your tailnet, you can make the remote share appear **local** to the camera with a reverse SSH tunnel. Because the destination becomes `127.0.0.1`, the proxy-unaware SMB client never has to route over the tailnet.
+
+From a computer that has both the share and tailnet access to the camera:
+
+```bash
+# Forward the camera's local port 445 back to the SMB share on this machine
+ssh -R 445:localhost:445 root@<camera-tailscale-ip>
+```
+
+Then, in the camera's **System → Storage → Add network share** dialog, use `127.0.0.1` as the share host and connect.
+
+> **Requires root on the camera.** Port 445 is privileged, so binding it needs a root-capable build (e.g. developer certificates installed, or the ROOT variant). If the share dialog ever supports a custom (unprivileged) SMB port, the same trick works as a non-root SSH user.
 
 ---
 
