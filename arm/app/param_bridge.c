@@ -43,6 +43,8 @@ static char *cfg_custom_server   = NULL;
 static char *cfg_auth_key        = NULL;
 static char *cfg_http_proxy_port = NULL;
 static char *cfg_socks5_port     = NULL;
+static char *cfg_accept_dns      = NULL;
+static char *cfg_accept_routes   = NULL;
 
 static void cache_set(char **field, const char *value) {
     if (!value) return;
@@ -139,6 +141,8 @@ static void load_config_cache(AXParameter *handle) {
     LOAD("AuthKey",        cfg_auth_key)
     LOAD("HttpProxyPort",  cfg_http_proxy_port)
     LOAD("Socks5Port",     cfg_socks5_port)
+    LOAD("AcceptDNS",      cfg_accept_dns)
+    LOAD("AcceptRoutes",   cfg_accept_routes)
 #undef LOAD
 }
 
@@ -153,6 +157,8 @@ static void write_config_file(void) {
     fprintf(f, "AUTH_KEY=%s\n",      cache_get(&cfg_auth_key,        ""));
     fprintf(f, "CONF_HTTP=%s\n",     cache_get(&cfg_http_proxy_port, "8080"));
     fprintf(f, "CONF_SOCKS=%s\n",    cache_get(&cfg_socks5_port,     "1080"));
+    fprintf(f, "ACCEPT_DNS=%s\n",    cache_get(&cfg_accept_dns,      "false"));
+    fprintf(f, "ACCEPT_ROUTES=%s\n", cache_get(&cfg_accept_routes,   "false"));
     fclose(f);
     chmod(CONFIG_FILE, 0600);
     syslog(LOG_INFO, "config updated: http=%s socks=%s server=%s",
@@ -185,6 +191,8 @@ static void parameter_changed(const gchar *name, const gchar *value,
     else if (strcmp(short_name, "AuthKey")        == 0) cache_set(&cfg_auth_key,        value);
     else if (strcmp(short_name, "HttpProxyPort")  == 0) cache_set(&cfg_http_proxy_port, value);
     else if (strcmp(short_name, "Socks5Port")     == 0) cache_set(&cfg_socks5_port,     value);
+    else if (strcmp(short_name, "AcceptDNS")      == 0) cache_set(&cfg_accept_dns,      value);
+    else if (strcmp(short_name, "AcceptRoutes")   == 0) cache_set(&cfg_accept_routes,   value);
 
     if (reload_timer_id)
         g_source_remove(reload_timer_id);
@@ -225,7 +233,8 @@ int main(void) {
     start_child();
 
     const char *params[] = {
-        "CustomServer", "AuthKey", "HttpProxyPort", "Socks5Port"
+        "CustomServer", "AuthKey", "HttpProxyPort", "Socks5Port",
+        "AcceptDNS", "AcceptRoutes"
     };
     for (size_t i = 0; i < sizeof(params) / sizeof(params[0]); i++) {
         if (!ax_parameter_register_callback(handle, params[i],

@@ -272,6 +272,23 @@
         .save-status.ok { color: var(--green); }
         .save-status.err { color: var(--red); }
 
+        /* Toggle switch */
+        .toggle-row { display: flex; align-items: flex-start; gap: 12px; }
+        .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .toggle-slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: var(--border); border-radius: 20px; transition: background 0.2s;
+        }
+        .toggle-slider:before {
+            content: ''; position: absolute;
+            height: 14px; width: 14px; left: 3px; bottom: 3px;
+            background: white; border-radius: 50%; transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--green); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
+        .toggle-info { flex: 1; }
+
         /* Refresh indicator */
         .refresh-bar {
             display: flex;
@@ -424,6 +441,26 @@
             <label class="settings-label" for="input-socks-port">SOCKS5 Proxy Port</label>
             <input class="settings-input" id="input-socks-port" type="text" autocomplete="off" placeholder="1080">
             <span class="settings-hint">Port for the SOCKS5 proxy. Default: 1080.</span>
+        </div>
+        <div class="settings-row toggle-row">
+            <label class="toggle-switch">
+                <input type="checkbox" id="input-accept-dns">
+                <span class="toggle-slider"></span>
+            </label>
+            <div class="toggle-info">
+                <div class="settings-label">Accept DNS</div>
+                <span class="settings-hint">Pass <code>--accept-dns=true</code> to tailscale up. Allows the tailnet to push DNS settings to this device. Off by default to avoid overriding the camera&apos;s DNS configuration.</span>
+            </div>
+        </div>
+        <div class="settings-row toggle-row">
+            <label class="toggle-switch">
+                <input type="checkbox" id="input-accept-routes">
+                <span class="toggle-slider"></span>
+            </label>
+            <div class="toggle-info">
+                <div class="settings-label">Accept Routes</div>
+                <span class="settings-hint">Pass <code>--accept-routes=true</code> to tailscale up. Allows this device to use subnet routes advertised by other nodes in the tailnet.</span>
+            </div>
         </div>
         <div class="settings-actions">
             <span class="save-status" id="save-status"></span>
@@ -779,6 +816,8 @@
     var authInput     = document.getElementById('input-authkey');
     var httpPortInput = document.getElementById('input-http-port');
     var socksPortInput= document.getElementById('input-socks-port');
+    var acceptDnsInput    = document.getElementById('input-accept-dns');
+    var acceptRoutesInput = document.getElementById('input-accept-routes');
     var saveBtn       = document.getElementById('save-btn');
     var saveStatus  = document.getElementById('save-status');
 
@@ -790,10 +829,14 @@
                 var am = txt.match(/root\.\S+\.AuthKey=(.*)/);
                 var hm = txt.match(/root\.\S+\.HttpProxyPort=(.*)/);
                 var km = txt.match(/root\.\S+\.Socks5Port=(.*)/);
+                var dm = txt.match(/root\.\S+\.AcceptDNS=(.*)/);
+                var rm = txt.match(/root\.\S+\.AcceptRoutes=(.*)/);
                 if (sm) serverInput.value    = sm[1].trim();
                 if (am) authInput.value      = am[1].trim();
                 if (hm) httpPortInput.value  = hm[1].trim();
                 if (km) socksPortInput.value = km[1].trim();
+                if (dm) acceptDnsInput.checked    = dm[1].trim() === 'true';
+                if (rm) acceptRoutesInput.checked = rm[1].trim() === 'true';
                 // Update proxy display card with authoritative param values
                 // and overwrite the localStorage cache so stale ports don't win on next render
                 var httpPort  = hm ? hm[1].trim() : null;
@@ -819,7 +862,9 @@
             '&root.' + APP + '.CustomServer='   + encodeURIComponent(serverInput.value.trim()) +
             '&root.' + APP + '.AuthKey='         + encodeURIComponent(authInput.value.trim()) +
             '&root.' + APP + '.HttpProxyPort='   + encodeURIComponent(httpPort) +
-            '&root.' + APP + '.Socks5Port='      + encodeURIComponent(socksPort);
+            '&root.' + APP + '.Socks5Port='      + encodeURIComponent(socksPort) +
+            '&root.' + APP + '.AcceptDNS='       + (acceptDnsInput.checked ? 'true' : 'false') +
+            '&root.' + APP + '.AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false');
         fetch(PARAM_URL, {
             method: 'POST',
             credentials: 'same-origin',

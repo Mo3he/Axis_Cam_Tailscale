@@ -33,6 +33,16 @@
                     "name": "Socks5Port",
                     "default": "1080",
                     "type": "string"
+                },
+                {
+                    "name": "AcceptDNS",
+                    "default": "false",
+                    "type": "string"
+                },
+                {
+                    "name": "AcceptRoutes",
+                    "default": "false",
+                    "type": "string"
                 }
             ]
         }

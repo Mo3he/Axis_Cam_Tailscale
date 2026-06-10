@@ -27,6 +27,16 @@
                     "name": "AuthKey",
                     "default": "",
                     "type": "string"
+                },
+                {
+                    "name": "AcceptDNS",
+                    "default": "false",
+                    "type": "string"
+                },
+                {
+                    "name": "AcceptRoutes",
+                    "default": "false",
+                    "type": "string"
                 }
             ]
         }

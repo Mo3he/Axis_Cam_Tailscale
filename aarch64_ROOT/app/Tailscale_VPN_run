@@ -15,6 +15,8 @@ chmod 755 $TAILSCALE_PATH
 
 CUSTOM_SERVER=""
 AUTH_KEY=""
+ACCEPT_DNS="false"
+ACCEPT_ROUTES="false"
 
 if [ -f "$STATE_DIR/params.conf" ]; then
     . "$STATE_DIR/params.conf"
@@ -30,7 +32,7 @@ TAILSCALED_PID=$!
 
 sleep 2
 
-TAILSCALE_CMD="$TAILSCALE_PATH --socket=$SOCKET_PATH up --accept-routes --hostname=$(hostname)"
+TAILSCALE_CMD="$TAILSCALE_PATH --socket=$SOCKET_PATH up --reset --hostname=$(hostname)"
 
 if [ -n "$CUSTOM_SERVER" ]; then
     TAILSCALE_CMD="$TAILSCALE_CMD --login-server $CUSTOM_SERVER"
@@ -38,6 +40,14 @@ fi
 
 if [ -n "$AUTH_KEY" ]; then
     TAILSCALE_CMD="$TAILSCALE_CMD --authkey $AUTH_KEY"
+fi
+
+if [ "$ACCEPT_DNS" = "true" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --accept-dns=true"
+fi
+
+if [ "$ACCEPT_ROUTES" = "true" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --accept-routes=true"
 fi
 
 eval $TAILSCALE_CMD
