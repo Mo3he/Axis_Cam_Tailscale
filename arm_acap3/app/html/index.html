@@ -612,6 +612,53 @@
     // ACAP3: also fetch the raw tailscaled.log (symlinked into html/) so the parser
     // can find IP, version, tailnet and Running state from tailscaled's own output.
     var DAEMON_LOG_URL = 'tailscaled.log';
+    // Authoritative backend state published by start.sh (symlinked into html/).
+    var STATUS_URL = 'status.json';
+
+    // Ground truth published by start.sh from `tailscale status --json`.
+    function fetchStatus() {
+        return fetch(STATUS_URL + '?t=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .catch(function() { return null; });
+    }
+
+    // Apply Tailscale's authoritative backend state onto the result object.
+    function applyStatus(result, st) {
+        var self = st.Self || {};
+        var ips = self.TailscaleIPs || st.TailscaleIPs || [];
+        var ip4 = null;
+        for (var i = 0; i < ips.length; i++) { if (/^100\./.test(ips[i])) { ip4 = ips[i]; break; } }
+        var bs = st.BackendState;
+
+        if (st.Version) result.version = String(st.Version).split('-')[0];
+
+        if (bs === 'Running' && self.Online === true) {
+            // Genuinely connected and reachable on the tailnet
+            result.state = 'connected';
+            result.url = null;
+            result.ip = ip4 || result.ip;
+            result.node = self.HostName || result.node;
+            result.tailnet = (st.CurrentTailnet && st.CurrentTailnet.Name) || result.tailnet;
+            cacheSet('ip', result.ip); cacheSet('node', result.node);
+            cacheSet('tailnet', result.tailnet); cacheSet('version', result.version);
+        } else if (bs === 'NeedsLogin' || bs === 'NeedsMachineAuth') {
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        } else if (bs === 'Running') {
+            // Backend running but node not online: transient network drop or the
+            // node was removed/expired and needs re-auth. Not connected. Keep any
+            // login URL the log parser found so the login button still appears.
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        } else if (bs === 'Stopped') {
+            result.state = 'disconnected';
+            result.url = null;
+        } else {
+            // NoState / Starting / unknown
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        }
+    }
 
     function refresh() {
         var syslogFetch = fetch(LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
@@ -619,17 +666,22 @@
         var daemonFetch = fetch(DAEMON_LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
             .then(function(r) { return r.text(); }).catch(function() { return ''; });
 
-        Promise.all([syslogFetch, daemonFetch]).then(function(res) {
+        Promise.all([syslogFetch, daemonFetch, fetchStatus()]).then(function(res) {
             // Syslog provides Axis timestamp headers (node name) and start/stop events.
             // tailscaled.log provides IP, version, tailnet, and -> Running state.
             var txt = res[0] + '\n' + res[1];
+            var st = res[2];
             var result = parse(txt);
             renderLogs(res[0]);  // show syslog in log panel; daemon log is too verbose
-            // Always verify with the app status API - syslog can have stale entries
+            // Always verify with the app status API - logs can have stale entries
             checkAppRunning().then(function(running) {
                     if (!running) {
                         result.state = 'disconnected';
+                    } else if (st && st.BackendState) {
+                        // Authoritative: Tailscale's own backend state
+                        applyStatus(result, st);
                     } else if (!result.url && result.state !== 'connected') {
+                        // Fallback to log heuristic when status.json is unavailable
                         result.state = 'connected';
                         result.ip = result.ip || cacheGet('ip');
                         result.node = result.node || cacheGet('node');

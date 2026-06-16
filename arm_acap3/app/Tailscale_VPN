@@ -55,11 +55,37 @@ logger -t "Tailscale_VPN" "Tailscale VPN is running"
 logger -t "Tailscale_VPN" "HTTP/HTTPS proxy: http://127.0.0.1:8080"
 logger -t "Tailscale_VPN" "SOCKS5 proxy:     127.0.0.1:1055"
 
-# Monitoring loop: stay alive while tailscaled is running.
-# This keeps the parent Tailscale_VPN (C launcher) in the process table
-# so pidof finds it and the camera web UI shows "Running" instead of "Stopped".
+# Publish tailscale's real backend state as JSON for the web UI to consume.
+# This is the authoritative connection signal (BackendState / Self.Online /
+# TailscaleIPs / AuthURL) instead of scraping logs, which otherwise reports
+# "connected" whenever the launcher keeps the process alive (e.g. no Internet).
+# Written to localdata and exposed at html/status.json via a build-time symlink.
+STATUS_FILE="$STATE_DIR/status.json"
+
+publish_status() {
+    if "$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" status --json > "$STATUS_FILE.tmp" 2>/dev/null; then
+        mv "$STATUS_FILE.tmp" "$STATUS_FILE" 2>/dev/null
+        chmod 644 "$STATUS_FILE" 2>/dev/null
+    else
+        rm -f "$STATUS_FILE.tmp" 2>/dev/null
+    fi
+}
+
+# Remove stale status on stop so the UI does not show a connected node after exit.
+cleanup() {
+    rm -f "$STATUS_FILE" 2>/dev/null
+    [ -n "$TAILSCALED_PID" ] && kill "$TAILSCALED_PID" 2>/dev/null
+    exit 0
+}
+trap cleanup TERM INT
+
+# Monitoring loop: stay alive while tailscaled is running and keep the published
+# status fresh. This keeps the parent Tailscale_VPN (C launcher) in the process
+# table so pidof finds it and the camera web UI shows "Running" instead of "Stopped".
 while kill -0 "$TAILSCALED_PID" 2>/dev/null; do
+    publish_status
     sleep 5
 done
 
+rm -f "$STATUS_FILE" 2>/dev/null
 logger -t "Tailscale_VPN" "tailscaled exited"

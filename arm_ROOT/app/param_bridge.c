@@ -21,13 +21,14 @@
 #include <errno.h>
 #include <signal.h>
 
-#define APP_NAME    "Tailscale_VPN"
-#define CONFIG_FILE "/usr/local/packages/Tailscale_VPN/localdata/params.conf"
-#define RUN_SCRIPT  "/usr/local/packages/Tailscale_VPN/Tailscale_VPN_run"
+#define APP_NAME      "Tailscale_VPN"
+#define CONFIG_FILE   "/usr/local/packages/Tailscale_VPN/localdata/params.conf"
+#define RUN_SCRIPT    "/usr/local/packages/Tailscale_VPN/Tailscale_VPN_run"
+#define SENTINEL_FILE "/usr/local/packages/Tailscale_VPN/localdata/authkey_clear"
 
+static AXParameter *g_ax_handle  = NULL;
 static pid_t child_pid = -1;
 static guint reload_timer_id = 0;
-static AXParameter *g_ax_handle = NULL;
 
 static char *cfg_custom_server = NULL;
 static char *cfg_auth_key      = NULL;
@@ -101,6 +102,29 @@ static gboolean watchdog_cb(gpointer G_GNUC_UNUSED data) {
             start_child();
         }
     }
+    return G_SOURCE_CONTINUE;
+}
+
+/* The run script drops SENTINEL_FILE after a successful `tailscale up` that
+ * used a one-time auth key. Clear the stored AuthKey so it is not reused and
+ * disappears from the settings UI. This replaces the old exit-code-0 path,
+ * which never fired because tailscaled keeps the child alive indefinitely. */
+static gboolean authkey_sentinel_cb(gpointer G_GNUC_UNUSED data) {
+    if (access(SENTINEL_FILE, F_OK) != 0)
+        return G_SOURCE_CONTINUE;
+
+    if (g_ax_handle && cfg_auth_key && *cfg_auth_key) {
+        GError *err = NULL;
+        if (ax_parameter_set(g_ax_handle, "AuthKey", "", TRUE, &err)) {
+            free(cfg_auth_key); cfg_auth_key = strdup("");
+            syslog(LOG_INFO, "AuthKey cleared after successful auth (sentinel)");
+        } else {
+            syslog(LOG_WARNING, "failed to clear AuthKey: %s",
+                   err ? err->message : "unknown");
+            if (err) g_error_free(err);
+        }
+    }
+    unlink(SENTINEL_FILE);
     return G_SOURCE_CONTINUE;
 }
 
@@ -185,6 +209,10 @@ int main(void) {
 
     mkdir("/usr/local/packages/Tailscale_VPN/localdata", 0755);
 
+    /* Drop any stale auth-key sentinel from a previous run so we don't clear a
+     * freshly configured key before it has been used. */
+    unlink(SENTINEL_FILE);
+
     AXParameter *handle = ax_parameter_new(APP_NAME, &error);
     if (!handle) {
         syslog(LOG_ERR, "ax_parameter_new: %s",
@@ -212,6 +240,7 @@ int main(void) {
     g_unix_signal_add(SIGTERM, signal_handler, loop);
     g_unix_signal_add(SIGINT,  signal_handler, loop);
     g_timeout_add_seconds(60, watchdog_cb, NULL);
+    g_timeout_add_seconds(5, authkey_sentinel_cb, NULL);
 
     syslog(LOG_INFO, "running — watching for parameter changes");
     g_main_loop_run(loop);

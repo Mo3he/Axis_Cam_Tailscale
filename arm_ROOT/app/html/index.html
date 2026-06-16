@@ -490,6 +490,7 @@
 (function() {
     var APP = 'Tailscale_VPN';
     var LOG_URL = '/axis-cgi/admin/systemlog.cgi?appname=' + APP;
+    var STATUS_URL = 'status.json';
     var logBox = document.getElementById('log-box');
     var autoScroll = true;
 
@@ -737,29 +738,82 @@
             .catch(function() { return false; });
     }
 
+    // Ground truth published by the run script from `tailscale status --json`.
+    function fetchStatus() {
+        return fetch(STATUS_URL + '?t=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .catch(function() { return null; });
+    }
+
+    // Apply Tailscale's authoritative backend state onto the result object.
+    function applyStatus(result, st) {
+        var self = st.Self || {};
+        var ips = self.TailscaleIPs || st.TailscaleIPs || [];
+        var ip4 = null;
+        for (var i = 0; i < ips.length; i++) { if (/^100\./.test(ips[i])) { ip4 = ips[i]; break; } }
+        var bs = st.BackendState;
+
+        if (st.Version) result.version = String(st.Version).split('-')[0];
+
+        if (bs === 'Running' && self.Online === true) {
+            // Genuinely connected and reachable on the tailnet
+            result.state = 'connected';
+            result.url = null;
+            result.ip = ip4 || result.ip;
+            result.node = self.HostName || result.node;
+            result.tailnet = (st.CurrentTailnet && st.CurrentTailnet.Name) || result.tailnet;
+            cacheSet('ip', result.ip); cacheSet('node', result.node);
+            cacheSet('tailnet', result.tailnet); cacheSet('version', result.version);
+        } else if (bs === 'NeedsLogin' || bs === 'NeedsMachineAuth') {
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        } else if (bs === 'Running') {
+            // Backend running but node not online: either a transient network
+            // drop (no action needed) or the node was removed/expired and needs
+            // re-auth. Not connected. Keep any login URL the log parser found
+            // (status.json's AuthURL lags during the `tailscale up` re-auth
+            // window) so the login button still appears when re-auth is needed.
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        } else if (bs === 'Stopped') {
+            result.state = 'disconnected';
+            result.url = null;
+        } else {
+            // NoState / Starting / unknown
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        }
+    }
+
     function refresh() {
-        fetch(LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
-            .then(function(r) { return r.text(); })
-            .then(function(txt) {
-                var result = parse(txt);
-                renderLogs(txt);
-                // Always verify with the app status API - syslog can have stale entries
-                checkAppRunning().then(function(running) {
-                    if (!running) {
-                        result.state = 'disconnected';
-                    } else if (!result.url && result.state !== 'connected') {
-                        result.state = 'connected';
-                        result.ip = result.ip || cacheGet('ip');
-                        result.node = result.node || cacheGet('node');
-                        result.tailnet = result.tailnet || cacheGet('tailnet');
-                        result.version = result.version || cacheGet('version');
-                    }
-                    render(result);
-                });
-            })
-            .catch(function() {
-                document.getElementById('status-text').textContent = 'Unable to fetch logs';
+        Promise.all([
+            fetch(LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
+                .then(function(r) { return r.text(); })
+                .catch(function() { return ''; }),
+            fetchStatus()
+        ]).then(function(arr) {
+            var txt = arr[0];
+            var st = arr[1];
+            var result = parse(txt || '');
+            if (txt) renderLogs(txt);
+            // Verify the app is actually running - status.json can be stale if stopped
+            checkAppRunning().then(function(running) {
+                if (!running) {
+                    result.state = 'disconnected';
+                } else if (st && st.BackendState) {
+                    // Authoritative: Tailscale's own backend state
+                    applyStatus(result, st);
+                } else if (!result.url && result.state !== 'connected') {
+                    // Fallback to log heuristic when status.json is unavailable
+                    result.state = 'connected';
+                    result.ip = result.ip || cacheGet('ip');
+                    result.node = result.node || cacheGet('node');
+                    result.tailnet = result.tailnet || cacheGet('tailnet');
+                    result.version = result.version || cacheGet('version');
+                }
+                render(result);
             });
+        });
     }
 
     refresh();

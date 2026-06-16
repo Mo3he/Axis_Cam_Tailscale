@@ -126,9 +126,9 @@ Before opening a Pull Request (PR), please consider the following guidelines:
 And finally when you are satisfied with your changes, open a new PR.
 
 <!-- markdownlint-disable MD034 -->
-[issues]: https://github.com/AxisCommunications/tailscale-acap/issues
-[issues_new]: https://github.com/AxisCommunications/tailscale-acap/issues/new
-[issues_bugs]: https://github.com/AxisCommunications/tailscale-acap/issues?q=label%3Abug
-[discussions]: https://github.com/AxisCommunications/tailscale-acap/discussions
-[discussions_new]: https://github.com/AxisCommunications/tailscale-acap/discussions/new
+[issues]: https://github.com/Mo3he/Axis_Cam_Tailscale/issues
+[issues_new]: https://github.com/Mo3he/Axis_Cam_Tailscale/issues/new
+[issues_bugs]: https://github.com/Mo3he/Axis_Cam_Tailscale/issues?q=label%3Abug
+[discussions]: https://github.com/Mo3he/Axis_Cam_Tailscale/discussions
+[discussions_new]: https://github.com/Mo3he/Axis_Cam_Tailscale/discussions/new
 <!-- markdownlint-enable MD034 -->

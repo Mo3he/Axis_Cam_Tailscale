@@ -30,6 +30,10 @@ RUN cp html/index.html index.html
 # The log is written at runtime to localdata/ (resolved path at runtime).
 RUN ln -sf ../localdata/tailscaled.log html/tailscaled.log
 
+# Symlink the runtime status.json (written by start.sh from `tailscale status
+# --json`) into html/ so the web UI can read Tailscale's authoritative state.
+RUN ln -sf ../localdata/status.json html/status.json
+
 # Build and package
 RUN . /opt/axis/acapsdk/environment-setup* && create-package.sh ./
 
