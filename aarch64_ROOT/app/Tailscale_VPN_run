@@ -17,6 +17,7 @@ CUSTOM_SERVER=""
 AUTH_KEY=""
 ACCEPT_DNS="false"
 ACCEPT_ROUTES="false"
+ADVERTISE_ROUTES=""
 
 if [ -f "$STATE_DIR/params.conf" ]; then
     . "$STATE_DIR/params.conf"
@@ -48,6 +49,16 @@ fi
 
 if [ "$ACCEPT_ROUTES" = "true" ]; then
     TAILSCALE_CMD="$TAILSCALE_CMD --accept-routes=true"
+fi
+
+# Advertise LAN subnets so this camera acts as a subnet router. Comma-separated
+# CIDRs (e.g. 192.168.1.0/24,10.0.0.0/8). In kernel-networking (root) mode the
+# host must forward packets between the tailnet and the LAN, so enable IP
+# forwarding. Routes must still be approved in the Tailscale admin console.
+if [ -n "$ADVERTISE_ROUTES" ]; then
+    echo 1 > /proc/sys/net/ipv4/ip_forward 2>/dev/null || true
+    echo 1 > /proc/sys/net/ipv6/conf/all/forwarding 2>/dev/null || true
+    TAILSCALE_CMD="$TAILSCALE_CMD --advertise-routes=$ADVERTISE_ROUTES"
 fi
 
 # Run `tailscale up` in the background and act on its outcome. If the node needs

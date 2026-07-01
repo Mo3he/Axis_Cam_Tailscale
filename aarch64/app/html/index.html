@@ -462,6 +462,11 @@
                 <span class="settings-hint">Pass <code>--accept-routes=true</code> to tailscale up. Allows this device to use subnet routes advertised by other nodes in the tailnet.</span>
             </div>
         </div>
+        <div class="settings-row">
+            <label class="settings-label" for="input-advertise-routes">Advertise Routes (Subnet Router)</label>
+            <input class="settings-input" id="input-advertise-routes" type="text" autocomplete="off" placeholder="192.168.1.0/24,10.0.0.0/8 (leave blank to disable)">
+            <span class="settings-hint">Comma-separated CIDRs this camera will route for the tailnet, turning it into a subnet router. Approve the routes in the Tailscale admin console after saving.</span>
+        </div>
         <div class="settings-actions">
             <span class="save-status" id="save-status"></span>
             <button class="save-btn" id="save-btn">Save &amp; Restart</button>
@@ -872,32 +877,64 @@
     var socksPortInput= document.getElementById('input-socks-port');
     var acceptDnsInput    = document.getElementById('input-accept-dns');
     var acceptRoutesInput = document.getElementById('input-accept-routes');
+    var advertiseRoutesInput = document.getElementById('input-advertise-routes');
     var saveBtn       = document.getElementById('save-btn');
     var saveStatus  = document.getElementById('save-status');
 
+    // param.cgi is used when available; on devices that lack it (e.g. some
+    // recorder/NVR-class devices) we fall back to the app's own endpoint,
+    // exposed through the manifest reverseProxy mapping at API_URL.
+    var API_URL = '/local/' + APP + '/api/settings';
+
+    function updateProxyDisplay(httpPort, socksPort) {
+        if (httpPort)  { cacheSet('http-port', httpPort);  document.getElementById('ts-http-proxy').textContent  = 'http://127.0.0.1:' + httpPort; }
+        if (socksPort) { cacheSet('socks-port', socksPort); document.getElementById('ts-socks-proxy').textContent = '127.0.0.1:' + socksPort; }
+    }
+
+    function applyParamText(txt) {
+        var sm = txt.match(/root\.\S+\.CustomServer=(.*)/);
+        var am = txt.match(/root\.\S+\.AuthKey=(.*)/);
+        var hm = txt.match(/root\.\S+\.HttpProxyPort=(.*)/);
+        var km = txt.match(/root\.\S+\.Socks5Port=(.*)/);
+        var dm = txt.match(/root\.\S+\.AcceptDNS=(.*)/);
+        var rm = txt.match(/root\.\S+\.AcceptRoutes=(.*)/);
+        var avm = txt.match(/root\.\S+\.AdvertiseRoutes=(.*)/);
+        // If none of the expected keys are present the endpoint isn't param.cgi
+        // (e.g. a generic 404 page); signal the caller to use the fallback.
+        if (!sm && !hm && !km) return false;
+        if (sm) serverInput.value    = sm[1].trim();
+        if (am) authInput.value      = am[1].trim();
+        if (hm) httpPortInput.value  = hm[1].trim();
+        if (km) socksPortInput.value = km[1].trim();
+        if (dm) acceptDnsInput.checked    = dm[1].trim() === 'true';
+        if (rm) acceptRoutesInput.checked = rm[1].trim() === 'true';
+        if (avm) advertiseRoutesInput.value = avm[1].trim();
+        updateProxyDisplay(hm ? hm[1].trim() : null, km ? km[1].trim() : null);
+        return true;
+    }
+
+    function applyJson(obj) {
+        if (typeof obj.CustomServer    === 'string') serverInput.value    = obj.CustomServer;
+        if (typeof obj.AuthKey         === 'string') authInput.value      = obj.AuthKey;
+        if (typeof obj.HttpProxyPort   === 'string') httpPortInput.value  = obj.HttpProxyPort;
+        if (typeof obj.Socks5Port      === 'string') socksPortInput.value = obj.Socks5Port;
+        if (typeof obj.AcceptDNS       === 'string') acceptDnsInput.checked    = obj.AcceptDNS === 'true';
+        if (typeof obj.AcceptRoutes    === 'string') acceptRoutesInput.checked = obj.AcceptRoutes === 'true';
+        if (typeof obj.AdvertiseRoutes === 'string') advertiseRoutesInput.value = obj.AdvertiseRoutes;
+        updateProxyDisplay(obj.HttpProxyPort, obj.Socks5Port);
+    }
+
     function loadSettings() {
         fetch(PARAM_URL + '?action=list&group=root.' + APP, { credentials: 'same-origin' })
-            .then(function(r) { return r.text(); })
-            .then(function(txt) {
-                var sm = txt.match(/root\.\S+\.CustomServer=(.*)/);
-                var am = txt.match(/root\.\S+\.AuthKey=(.*)/);
-                var hm = txt.match(/root\.\S+\.HttpProxyPort=(.*)/);
-                var km = txt.match(/root\.\S+\.Socks5Port=(.*)/);
-                var dm = txt.match(/root\.\S+\.AcceptDNS=(.*)/);
-                var rm = txt.match(/root\.\S+\.AcceptRoutes=(.*)/);
-                if (sm) serverInput.value    = sm[1].trim();
-                if (am) authInput.value      = am[1].trim();
-                if (hm) httpPortInput.value  = hm[1].trim();
-                if (km) socksPortInput.value = km[1].trim();
-                if (dm) acceptDnsInput.checked    = dm[1].trim() === 'true';
-                if (rm) acceptRoutesInput.checked = rm[1].trim() === 'true';
-                // Update proxy display card with authoritative param values
-                // and overwrite the localStorage cache so stale ports don't win on next render
-                var httpPort  = hm ? hm[1].trim() : null;
-                var socksPort = km ? km[1].trim() : null;
-                if (httpPort)  { cacheSet('http-port', httpPort);  document.getElementById('ts-http-proxy').textContent  = 'http://127.0.0.1:' + httpPort; }
-                if (socksPort) { cacheSet('socks-port', socksPort); document.getElementById('ts-socks-proxy').textContent = '127.0.0.1:' + socksPort; }
-            })
+            .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
+            .then(function(txt) { if (!applyParamText(txt)) return Promise.reject(); })
+            .catch(function() { loadSettingsFallback(); });
+    }
+
+    function loadSettingsFallback() {
+        fetch(API_URL + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(obj) { if (obj) applyJson(obj); })
             .catch(function() {});
     }
 
@@ -905,6 +942,32 @@
         saveStatus.textContent = msg;
         saveStatus.className = 'save-status' + (cls ? ' ' + cls : '');
         if (msg) setTimeout(function() { saveStatus.textContent = ''; saveStatus.className = 'save-status'; }, 4000);
+    }
+
+    function saveViaFallback(httpPort, socksPort) {
+        var body = 'CustomServer='    + encodeURIComponent(serverInput.value.trim()) +
+                   '&AuthKey='         + encodeURIComponent(authInput.value.trim()) +
+                   '&HttpProxyPort='   + encodeURIComponent(httpPort) +
+                   '&Socks5Port='      + encodeURIComponent(socksPort) +
+                   '&AcceptDNS='       + (acceptDnsInput.checked ? 'true' : 'false') +
+                   '&AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false') +
+                   '&AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim());
+        return fetch(API_URL, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        })
+        .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
+        .then(function(txt) {
+            if (/OK/.test(txt)) {
+                // The app applies the change and restarts its tunnel itself,
+                // so no separate control.cgi restart is needed here.
+                setStatus('Saved. Restarting...', 'ok');
+            } else {
+                setStatus('Error saving settings', 'err');
+            }
+        });
     }
 
     saveBtn.addEventListener('click', function() {
@@ -918,29 +981,31 @@
             '&root.' + APP + '.HttpProxyPort='   + encodeURIComponent(httpPort) +
             '&root.' + APP + '.Socks5Port='      + encodeURIComponent(socksPort) +
             '&root.' + APP + '.AcceptDNS='       + (acceptDnsInput.checked ? 'true' : 'false') +
-            '&root.' + APP + '.AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false');
+            '&root.' + APP + '.AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false') +
+            '&root.' + APP + '.AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim());
         fetch(PARAM_URL, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
         })
-        .then(function(r) { return r.text(); })
+        .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
         .then(function(txt) {
-            saveBtn.disabled = false;
             if (/^OK/.test(txt.trim())) {
                 setStatus('Saved. Restarting...', 'ok');
                 // Restart the app so new settings take effect
                 return fetch('/axis-cgi/applications/control.cgi?action=restart&package=' + APP,
                     { method: 'POST', credentials: 'same-origin' });
-            } else {
-                setStatus('Error: ' + txt.trim(), 'err');
             }
+            // param.cgi reachable but rejected the update — surface the error.
+            setStatus('Error: ' + txt.trim(), 'err');
         })
-        .catch(function(e) {
-            saveBtn.disabled = false;
-            setStatus('Failed to save', 'err');
-        });
+        .catch(function() {
+            // param.cgi unavailable (e.g. recorder-class device) — use the fallback.
+            return saveViaFallback(httpPort, socksPort);
+        })
+        .then(function() { saveBtn.disabled = false; })
+        .catch(function() { saveBtn.disabled = false; setStatus('Failed to save', 'err'); });
     });
 
     loadSettings();

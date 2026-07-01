@@ -20,6 +20,7 @@ CONF_HTTP="8080"
 CONF_SOCKS="1080"
 ACCEPT_DNS="false"
 ACCEPT_ROUTES="false"
+ADVERTISE_ROUTES=""
 
 if [ -f "$STATE_DIR/params.conf" ]; then
     . "$STATE_DIR/params.conf"
@@ -74,6 +75,15 @@ fi
 
 if [ "$ACCEPT_ROUTES" = "true" ]; then
     TAILSCALE_CMD="$TAILSCALE_CMD --accept-routes=true"
+fi
+
+# Advertise LAN subnets so this camera acts as a subnet router. Comma-separated
+# CIDRs (e.g. 192.168.1.0/24,10.0.0.0/8). In userspace-networking mode the
+# tailscaled netstack forwards tailnet traffic to these subnets, so no kernel IP
+# forwarding is required. Routes must still be approved in the Tailscale admin
+# console before peers can use them.
+if [ -n "$ADVERTISE_ROUTES" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --advertise-routes=$ADVERTISE_ROUTES"
 fi
 
 # Run `tailscale up` in the background and act on its outcome. If the node needs

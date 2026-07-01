@@ -13,6 +13,13 @@
         },
         "configuration": {
             "settingPage": "index.html",
+            "reverseProxy": [
+                {
+                    "apiPath": "api",
+                    "target": "http://localhost:2201/",
+                    "access": "admin"
+                }
+            ],
             "paramConfig": [
                 {
                     "name": "CustomServer",
@@ -42,6 +49,11 @@
                 {
                     "name": "AcceptRoutes",
                     "default": "false",
+                    "type": "string"
+                },
+                {
+                    "name": "AdvertiseRoutes",
+                    "default": "",
                     "type": "string"
                 }
             ]
