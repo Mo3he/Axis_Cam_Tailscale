@@ -1,15 +1,20 @@
 {
-    "schemaVersion": "1.7.0",
+    "schemaVersion": "2.0.0",
     "acapPackageConf": {
         "setup": {
             "appName": "Tailscale_VPN",
             "friendlyName": "Tailscale VPN",
             "vendor": "Mo3he",
-            "embeddedSdkVersion": "3.0",
+            "vendorId": "5741c1fb91",
             "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
-            "runMode": "respawn",
             "version": "1.98.8",
-            "architecture": "armv7hf"
+            "architecture": "armv7hf",
+            "runMode": "respawn",
+            "compatibleOsVersions": [
+                {
+                    "max": "13"
+                }
+            ]
         },
         "configuration": {
             "settingPage": "index.html",

@@ -1,9 +1,10 @@
 **/.DS_Store
 **/build
 
-# Do not track release artifacts
+# Do not track release artifacts (local .eap build outputs stay untracked anywhere in the tree)
 releases/
 build/
+*.eap
 
 # Do not track downloaded Tailscale tarballs and temp bins
 tailscale_bins/

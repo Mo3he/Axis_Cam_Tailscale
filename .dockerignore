@@ -1,0 +1,12 @@
+# All variants build from the repository root (docker build -f <variant>/Dockerfile .)
+# so keep the context lean. Do NOT exclude common/app/ or <variant>/app/ — the
+# Dockerfiles COPY those, including the Tailscale binaries placed in app/lib/.
+.git
+.github
+.DS_Store
+*.eap
+*.tgz
+build
+releases
+tailscale_bins
+README.md

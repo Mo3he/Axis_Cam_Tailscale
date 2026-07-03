@@ -110,17 +110,27 @@ jobs:
         mkdir -p releases
 
         for folder in */ ; do
-          [[ ! -d "$folder/app" ]] && continue
           FOLDER_NAME="${folder%/}"  # remove trailing slash
+          [[ "$FOLDER_NAME" == "common" ]] && continue
+          [[ ! -d "$folder/app" ]] && continue
           echo "Processing folder $FOLDER_NAME"
+
+          # aarch64/arm/aarch64_ROOT/arm_ROOT share their C source, run script,
+          # HTML, and Makefile via common/app/ (see Dockerfile COPY layers);
+          # only arm_acap3 still carries its own self-contained app/ tree.
+          case "$FOLDER_NAME" in
+            aarch64|arm|aarch64_ROOT|arm_ROOT) APP_LIB_DIR="common/app/lib" ;;
+            *) APP_LIB_DIR="$folder/app/lib" ;;
+          esac
+          mkdir -p "$APP_LIB_DIR"
 
           # Detect architecture
           if [[ "$FOLDER_NAME" == arm* ]]; then
-            cp tailscale_bins/tailscale_arm "$folder/app/lib/tailscale"
-            cp tailscale_bins/tailscaled_arm "$folder/app/lib/tailscaled"
+            cp tailscale_bins/tailscale_arm "$APP_LIB_DIR/tailscale"
+            cp tailscale_bins/tailscaled_arm "$APP_LIB_DIR/tailscaled"
           else
-            cp tailscale_bins/tailscale_arm64 "$folder/app/lib/tailscale"
-            cp tailscale_bins/tailscaled_arm64 "$folder/app/lib/tailscaled"
+            cp tailscale_bins/tailscale_arm64 "$APP_LIB_DIR/tailscale"
+            cp tailscale_bins/tailscaled_arm64 "$APP_LIB_DIR/tailscaled"
           fi
 
           # Detect variant suffix for .eap naming
@@ -145,7 +155,7 @@ jobs:
           # Docker build
           TAG_NAME=$(echo "$FOLDER_NAME" | tr '[:upper:]' '[:lower:]' | tr '/ ' '_')  # lowercase and clean
           echo "Building $TAG_NAME"
-          docker build -f "$folder/Dockerfile" --tag "$TAG_NAME" "$folder"
+          docker build -f "$folder/Dockerfile" --tag "$TAG_NAME" .
 
           # Extract .eap files into build folder
           EAP_OUTPUT="./build/${TAG_NAME}"

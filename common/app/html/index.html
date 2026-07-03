@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tailscale VPN</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #181b23;
+            --surface2: #1e2230;
+            --border: #262a35;
+            --text: #e4e6ed;
+            --muted: #8b8fa3;
+            --accent: #2e2d2d;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --radius: 10px;
+            --mono: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f6f8;
+            --surface: #ffffff;
+            --surface2: #f0f1f4;
+            --border: #e0e3e8;
+            --text: #1a1a2e;
+            --muted: #6b7084;
+            --accent: #2e2d2d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            font-size: 14px;
+            max-width: 720px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .theme-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            cursor: pointer;
+            border-radius: 8px;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-btn:hover { color: var(--text); border-color: var(--muted); }
+        .theme-btn svg { width: 16px; height: 16px; }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        /* Status */
+        .status-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .status-banner.connected { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); }
+        .status-banner.connecting { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+        .status-banner.disconnected { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-banner.connected .dot { background: var(--green); box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
+        .status-banner.connecting .dot { background: var(--yellow); box-shadow: 0 0 0 3px rgba(245,158,11,0.2); animation: pulse 1.5s infinite; }
+        .status-banner.disconnected .dot { background: var(--red); box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-banner.connected .status-text { color: var(--green); }
+        .status-banner.connecting .status-text { color: var(--yellow); }
+        .status-banner.disconnected .status-text { color: var(--red); }
+
+        .status-time {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: var(--mono);
+        }
+
+        /* Auth block */
+        .auth-block {
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .auth-block p {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+        .auth-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px 18px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .auth-btn:hover { opacity: 0.9; }
+        .auth-url {
+            display: block;
+            font-size: 11px;
+            color: var(--muted);
+            word-break: break-all;
+            font-family: var(--mono);
+        }
+
+        /* Info grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .info-item {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 12px 14px;
+        }
+        .info-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--mono);
+            word-break: break-all;
+        }
+        .info-value.dim { color: var(--muted); font-weight: 400; }
+
+        /* Log viewer */
+        .log-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .log-badge {
+            font-size: 11px;
+            color: var(--muted);
+            font-family: var(--mono);
+        }
+        .log-toggle {
+            font-size: 12px;
+            color: var(--accent);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .log-toggle:hover { text-decoration: underline; }
+
+        .log-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: var(--mono);
+            font-size: 11.5px;
+            line-height: 1.7;
+            color: var(--muted);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .log-box .log-line { display: block; }
+        .log-box .log-line:hover { background: rgba(46,45,45,0.06); }
+        .log-line .ts { color: var(--muted); opacity: 0.6; }
+        .log-line .msg-info { color: var(--accent); }
+        .log-line .msg-warn { color: var(--yellow); }
+        .log-line .msg-err { color: var(--red); }
+        .log-line .msg-ok { color: var(--green); }
+
+        /* Settings form */
+        .settings-form { display: flex; flex-direction: column; gap: 12px; }
+        .settings-row { display: flex; flex-direction: column; gap: 4px; }
+        .settings-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
+        .settings-input {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: var(--mono);
+            padding: 8px 10px;
+            width: 100%;
+            outline: none;
+        }
+        .settings-input:focus { border-color: var(--accent); }
+        .settings-hint { font-size: 11px; color: var(--muted); }
+        .settings-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 4px; }
+        .save-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .save-btn:hover { opacity: 0.9; }
+        .save-btn:disabled { opacity: 0.5; cursor: default; }
+        .save-status { font-size: 12px; color: var(--muted); }
+        .save-status.ok { color: var(--green); }
+        .save-status.err { color: var(--red); }
+
+        /* Toggle switch */
+        .toggle-row { display: flex; align-items: flex-start; gap: 12px; }
+        .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .toggle-slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: var(--border); border-radius: 20px; transition: background 0.2s;
+        }
+        .toggle-slider:before {
+            content: ''; position: absolute;
+            height: 14px; width: 14px; left: 3px; bottom: 3px;
+            background: white; border-radius: 50%; transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--green); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
+        .toggle-info { flex: 1; }
+
+        /* Refresh indicator */
+        .refresh-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* Update banner */
+        .update-banner {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            background: rgba(46,45,45,0.1);
+            border: 1px solid rgba(46,45,45,0.2);
+        }
+        .update-banner.visible { display: flex; }
+        .update-banner .update-text {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .update-banner .update-text strong { color: var(--accent); }
+        .update-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+        .update-btn:hover { opacity: 0.9; }
+
+        @media (max-width: 480px) {
+            body { padding: 14px; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <h1>Tailscale VPN</h1>
+    </div>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+</div>
+
+<!-- Status -->
+<div id="status-banner" class="status-banner connecting">
+    <span class="dot"></span>
+    <span id="status-text" class="status-text">Checking...</span>
+    <span id="status-time" class="status-time"></span>
+</div>
+
+<!-- Update available -->
+<div id="update-banner" class="update-banner">
+    <div class="update-text">Update available: <strong id="update-version"></strong></div>
+    <a id="update-link" class="update-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+    </a>
+</div>
+
+<!-- Auth (hidden by default) -->
+<div id="auth-block" class="auth-block" style="display:none;">
+    <p>Authenticate this device to connect to your Tailscale network:</p>
+    <a id="auth-link" class="auth-btn" href="#" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Login Page
+    </a>
+    <span id="auth-url-text" class="auth-url"></span>
+</div>
+
+<!-- Connection Info -->
+<div class="card" id="info-card" style="display:none;">
+    <div class="card-title">Connection Details</div>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Tailscale IP</div>
+            <div class="info-value" id="ts-ip">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Node Name</div>
+            <div class="info-value" id="ts-node">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Account</div>
+            <div class="info-value" id="ts-tailnet">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Version</div>
+            <div class="info-value" id="ts-version">-</div>
+        </div>
+    </div>
+    <div style="margin-top:14px;text-align:right;">
+        <button id="check-update-btn" class="log-toggle">Check for Updates</button>
+    </div>
+</div>
+
+<!-- Proxy Info (hidden on ROOT builds, which have no local proxy) -->
+<div class="card" id="proxy-info-card" style="display:none;">
+    <div class="card-title">Proxy Configuration</div>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">HTTP/HTTPS Proxy</div>
+            <div class="info-value" id="ts-http-proxy">http://127.0.0.1:8080</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">SOCKS5 Proxy</div>
+            <div class="info-value" id="ts-socks-proxy">127.0.0.1:1080</div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings -->
+<div class="card">
+    <div class="card-title">Settings</div>
+    <div class="settings-form">
+        <div class="settings-row">
+            <label class="settings-label" for="input-server">Custom Server URL</label>
+            <input class="settings-input" id="input-server" type="text" autocomplete="off" placeholder="https://controlplane.example.com (leave blank for Tailscale)">
+            <span class="settings-hint">Leave blank to use official Tailscale servers.</span>
+        </div>
+        <div class="settings-row">
+            <label class="settings-label" for="input-authkey">Auth Key</label>
+            <input class="settings-input" id="input-authkey" type="text" autocomplete="off" placeholder="tskey-auth-... (leave blank to use browser login)">
+            <span class="settings-hint">One-time use. Cleared automatically after first successful connection.</span>
+        </div>
+        <div class="settings-row" id="http-port-row" style="display:none;">
+            <label class="settings-label" for="input-http-port">HTTP Proxy Port</label>
+            <input class="settings-input" id="input-http-port" type="text" autocomplete="off" placeholder="8080">
+            <span class="settings-hint">Port for the outbound HTTP/HTTPS proxy. Default: 8080.</span>
+        </div>
+        <div class="settings-row" id="socks-port-row" style="display:none;">
+            <label class="settings-label" for="input-socks-port">SOCKS5 Proxy Port</label>
+            <input class="settings-input" id="input-socks-port" type="text" autocomplete="off" placeholder="1080">
+            <span class="settings-hint">Port for the SOCKS5 proxy. Default: 1080.</span>
+        </div>
+        <div class="settings-row toggle-row">
+            <label class="toggle-switch">
+                <input type="checkbox" id="input-accept-dns">
+                <span class="toggle-slider"></span>
+            </label>
+            <div class="toggle-info">
+                <div class="settings-label">Accept DNS</div>
+                <span class="settings-hint">Pass <code>--accept-dns=true</code> to tailscale up. Allows the tailnet to push DNS settings to this device. Off by default to avoid overriding the camera&apos;s DNS configuration.</span>
+            </div>
+        </div>
+        <div class="settings-row toggle-row">
+            <label class="toggle-switch">
+                <input type="checkbox" id="input-accept-routes">
+                <span class="toggle-slider"></span>
+            </label>
+            <div class="toggle-info">
+                <div class="settings-label">Accept Routes</div>
+                <span class="settings-hint">Pass <code>--accept-routes=true</code> to tailscale up. Allows this device to use subnet routes advertised by other nodes in the tailnet.</span>
+            </div>
+        </div>
+        <div class="settings-row">
+            <label class="settings-label" for="input-advertise-routes">Advertise Routes (Subnet Router)</label>
+            <input class="settings-input" id="input-advertise-routes" type="text" autocomplete="off" placeholder="192.168.1.0/24,10.0.0.0/8 (leave blank to disable)">
+            <span class="settings-hint">Comma-separated CIDRs this camera will route for the tailnet, turning it into a subnet router. Approve the routes in the Tailscale admin console after saving.</span>
+        </div>
+        <div class="settings-actions">
+            <span class="save-status" id="save-status"></span>
+            <button class="save-btn" id="save-btn">Save &amp; Restart</button>
+        </div>
+    </div>
+</div>
+
+<!-- Logs -->
+<div class="card">
+    <div class="log-controls">
+        <div class="card-title" style="margin-bottom:0;">Service Log</div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <span id="log-count" class="log-badge"></span>
+            <button class="log-toggle" id="log-scroll-btn">Scroll to bottom</button>
+        </div>
+    </div>
+    <div class="log-box" id="log-box">Loading logs...</div>
+</div>
+
+<div class="refresh-bar">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    <span>Auto-refresh every 5s</span>
+</div>
+
+<script>
+(function() {
+    var APP = 'Tailscale_VPN';
+    var LOG_URL = '/axis-cgi/admin/systemlog.cgi?appname=' + APP;
+    var STATUS_URL = 'status.json';
+    var logBox = document.getElementById('log-box');
+    var autoScroll = true;
+
+    // Theme
+    var toggle = document.getElementById('themeToggle');
+    var sun = document.getElementById('iconSun');
+    var moon = document.getElementById('iconMoon');
+    var root = document.documentElement;
+
+    function applyTheme(t) {
+        if (t === 'light') {
+            root.setAttribute('data-theme', 'light');
+            sun.style.display = 'none';
+            moon.style.display = 'block';
+        } else {
+            root.removeAttribute('data-theme');
+            sun.style.display = 'block';
+            moon.style.display = 'none';
+        }
+    }
+    var stored = localStorage.getItem('ts-acap-theme');
+    if (stored) applyTheme(stored);
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches) applyTheme('light');
+
+    toggle.addEventListener('click', function() {
+        var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        localStorage.setItem('ts-acap-theme', next);
+        applyTheme(next);
+    });
+
+    // Log scroll
+    document.getElementById('log-scroll-btn').addEventListener('click', function() {
+        logBox.scrollTop = logBox.scrollHeight;
+        autoScroll = true;
+    });
+    logBox.addEventListener('scroll', function() {
+        autoScroll = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 40;
+    });
+
+    // Cache helpers - survive syslog rotation
+    function cacheSet(k, v) { if (v) try { localStorage.setItem('ts-' + k, v); } catch(e){} }
+    function cacheGet(k) { try { return localStorage.getItem('ts-' + k); } catch(e){ return null; } }
+
+    function parse(txt) {
+        var allUrls = txt.match(/https:\/\/login\.tailscale\.com\/[^\s<"\t]+/g) || [];
+        var latestUrl = allUrls.length ? allUrls[allUrls.length - 1] : null;
+
+        var ipMatch = txt.match(/peerapi: serving on http:\/\/(100\.[\d.]+):/g);
+        var tsIP = null;
+        if (ipMatch) {
+            var last = ipMatch[ipMatch.length - 1];
+            var m = last.match(/http:\/\/(100\.[\d.]+):/);
+            if (m) tsIP = m[1];
+        }
+        if (!tsIP) {
+            var nmSelf = txt.match(/netmap: self:[^\n]*\[(100\.[\d.]+)\//);
+            if (nmSelf) tsIP = nmSelf[1];
+        }
+        if (!tsIP) {
+            var allIPs = txt.match(/\b100\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g) || [];
+            tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
+        }
+
+        // Primary: extract hostname from Axis syslog header (always the real device hostname)
+        var node = null;
+        var hostLine = txt.match(/\d{4}-\d{2}-\d{2}T[\d:.]+[+-]\d{2}:\d{2}\s+(\S+)\s+\[/);
+        if (hostLine) node = hostLine[1];
+        // Fallback: popBrowserAuthNow/StartLoginInteractiveAs (may contain stale acap-tailscale_vpn)
+        if (!node) {
+            var nodeMatches = txt.match(/popBrowserAuthNow\("([^"]+)"\)/g);
+            if (!nodeMatches) nodeMatches = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/g);
+            if (nodeMatches) {
+                var nm = nodeMatches[nodeMatches.length - 1].match(/"([^"]+)"/);
+                if (nm) node = nm[1];
+            }
+        }
+
+        var loginMatches = txt.match(/active login:\s+\S+/g);
+        var tailnet = null;
+        if (loginMatches) {
+            var lm = loginMatches[loginMatches.length - 1].match(/active login:\s+(\S+)/);
+            if (lm) tailnet = lm[1];
+        }
+        if (!tailnet) {
+            // Fallback: extract from periodic netmap lines "u=user@email.com"
+            var userMatches = txt.match(/\bu=([^\s\[,\]]+)/g);
+            if (userMatches) {
+                var um = userMatches[userMatches.length - 1].match(/u=([^\s\[,\]]+)/);
+                if (um) tailnet = um[1];
+            }
+        }
+
+        var versionMatches = txt.match(/Program starting: v(\d+\.\d+\.\d+)/g);
+        var version = null;
+        if (versionMatches) {
+            var last = versionMatches[versionMatches.length - 1];
+            var vm = last.match(/v(\d+\.\d+\.\d+)/);
+            if (vm) version = vm[1];
+        }
+        if (!version) {
+            // Fallback: extract from periodic "v1.2.3-tXXX-gYYY peers:" log lines
+            var peersMatches = txt.match(/v(\d+\.\d+\.\d+)-\S+\s+peers:/g);
+            if (peersMatches) {
+                var lp = peersMatches[peersMatches.length - 1];
+                var pm = lp.match(/v(\d+\.\d+\.\d+)/);
+                if (pm) version = pm[1];
+            }
+        }
+
+        // Parse proxy ports from log — use last match so old entries don't win
+        var httpPort = null;
+        var httpProxyMatches = txt.match(/HTTP\/HTTPS proxy: http:\/\/127\.0\.0\.1:(\d+)/g);
+        if (httpProxyMatches) { var m = httpProxyMatches[httpProxyMatches.length - 1].match(/:(\d+)$/); if (m) httpPort = m[1]; }
+        var socksPort = null;
+        var socksProxyMatches = txt.match(/SOCKS5 proxy:\s+127\.0\.0\.1:(\d+)/g);
+        if (socksProxyMatches) { var ms = socksProxyMatches[socksProxyMatches.length - 1].match(/:(\d+)$/); if (ms) socksPort = ms[1]; }
+
+        // Cache when found, restore from cache when missing
+        cacheSet('ip', tsIP); cacheSet('node', node); cacheSet('tailnet', tailnet); cacheSet('version', version);
+        cacheSet('http-port', httpPort); cacheSet('socks-port', socksPort);
+        tsIP = tsIP || cacheGet('ip');
+        node = node || cacheGet('node');
+        tailnet = tailnet || cacheGet('tailnet');
+        version = version || cacheGet('version');
+        httpPort = httpPort || cacheGet('http-port');
+        socksPort = socksPort || cacheGet('socks-port');
+
+        var stateLines = txt.match(/Switching ipn state [^\n]+/g) || [];
+        var lastState = stateLines.length ? stateLines[stateLines.length - 1] : '';
+        var isRunning = /-> Running/.test(lastState);
+
+        // Fallbacks only when syslog has rotated and no state transitions are visible.
+        // If we CAN see state lines (e.g. "-> NeedsLogin"), trust them over our own
+        // "Tailscale VPN is running" message which stays in syslog indefinitely.
+        if (!isRunning && stateLines.length === 0) {
+            isRunning = /Tailscale VPN is running/.test(txt) ||
+                        /health\(warnable=[^)]+\): ok/.test(txt) ||
+                        /derp-\d+ connected/.test(txt) ||
+                        /c2n: GET/.test(txt) ||
+                        /localapi:/.test(txt);
+        }
+
+        // If an auth URL appears AFTER the last Running state, re-auth is needed
+        // (handles stale Running entries in syslog after reinstall or token expiry)
+        if (isRunning && latestUrl) {
+            // Use the LATEST of '-> Running' (tailscaled state) or 'Tailscale VPN is running'
+            // (our shell log). The shell log is written AFTER auth completes, so it correctly
+            // post-dates the auth URL when connection succeeds.
+            var lastRunIdx = txt.lastIndexOf('-> Running');
+            var lastRunningMsgIdx = txt.lastIndexOf('Tailscale VPN is running');
+            if (lastRunningMsgIdx > lastRunIdx) lastRunIdx = lastRunningMsgIdx;
+            var urlSnippet = latestUrl.substring(0, 60);
+            var lastUrlIdx = -1, upos = 0, uidx;
+            while ((uidx = txt.indexOf(urlSnippet, upos)) !== -1) { lastUrlIdx = uidx; upos = uidx + 1; }
+            if (lastUrlIdx > lastRunIdx) isRunning = false;
+        }
+
+        if (isRunning) return { state: 'connected', url: null, ip: tsIP, node: node, tailnet: tailnet, version: version, httpPort: httpPort, socksPort: socksPort };
+        if (latestUrl) return { state: 'connecting', url: latestUrl, ip: null, node: null, tailnet: null, version: version, httpPort: httpPort, socksPort: socksPort };
+        if (/Starting Tailscale|tailscaled.*start|logtail started/.test(txt)) return { state: 'connecting', url: null, ip: null, node: null, tailnet: null, version: version, httpPort: httpPort, socksPort: socksPort };
+        return { state: 'disconnected', url: null, ip: null, node: null, tailnet: null, version: version, httpPort: httpPort, socksPort: socksPort };
+    }
+
+    function classifyLine(msg) {
+        if (/error|fail|panic|fatal/i.test(msg)) return 'msg-err';
+        if (/warn|timeout|retry/i.test(msg)) return 'msg-warn';
+        if (/connected|running|logged in|success/i.test(msg)) return 'msg-ok';
+        if (/starting|auth|login|switching/i.test(msg)) return 'msg-info';
+        return '';
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function renderLogs(txt) {
+        var lines = txt.split('\n').filter(function(l) { return l.trim(); });
+        document.getElementById('log-count').textContent = lines.length + ' lines';
+
+        var h = '';
+        for (var i = 0; i < lines.length; i++) {
+            var parts = lines[i].match(/^(\S+\s+\d+\s+[\d:]+)\s+(.*)/);
+            var cls = classifyLine(lines[i]);
+            if (parts) {
+                h += '<span class="log-line"><span class="ts">' + escHtml(parts[1]) + '</span> <span class="' + cls + '">' + escHtml(parts[2]) + '</span></span>\n';
+            } else {
+                h += '<span class="log-line"><span class="' + cls + '">' + escHtml(lines[i]) + '</span></span>\n';
+            }
+        }
+        logBox.innerHTML = h;
+        if (autoScroll) logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function render(r) {
+        var banner = document.getElementById('status-banner');
+        var statusText = document.getElementById('status-text');
+        var auth = document.getElementById('auth-block');
+        var info = document.getElementById('info-card');
+
+        banner.className = 'status-banner ' + r.state;
+        var labels = { connected: 'Connected', connecting: 'Connecting...', disconnected: 'Stopped' };
+        statusText.textContent = labels[r.state];
+
+        if (r.state === 'connecting' && r.url) {
+            document.getElementById('auth-link').href = r.url;
+            document.getElementById('auth-url-text').textContent = r.url;
+            auth.style.display = '';
+        } else {
+            auth.style.display = 'none';
+        }
+
+        // Proxy card is always visible — update ports whenever known
+        if (r.httpPort) document.getElementById('ts-http-proxy').textContent = 'http://127.0.0.1:' + r.httpPort;
+        if (r.socksPort) document.getElementById('ts-socks-proxy').textContent = '127.0.0.1:' + r.socksPort;
+
+        if (r.state === 'connected') {
+            document.getElementById('ts-ip').textContent = r.ip || '-';
+            document.getElementById('ts-ip').className = 'info-value' + (r.ip ? '' : ' dim');
+            document.getElementById('ts-node').textContent = r.node || '-';
+            document.getElementById('ts-node').className = 'info-value' + (r.node ? '' : ' dim');
+            document.getElementById('ts-tailnet').textContent = r.tailnet || '-';
+            document.getElementById('ts-tailnet').className = 'info-value' + (r.tailnet ? '' : ' dim');
+            document.getElementById('ts-version').textContent = r.version || '-';
+            document.getElementById('ts-version').className = 'info-value' + (r.version ? '' : ' dim');
+            info.style.display = '';
+            if (r.version) checkForUpdate(r.version);
+        } else {
+            info.style.display = 'none';
+        }
+
+        var now = new Date();
+        document.getElementById('status-time').textContent =
+            ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2) + ':' + ('0'+now.getSeconds()).slice(-2);
+    }
+
+    var APP_LIST_URL = '/axis-cgi/applications/list.cgi';
+
+    function checkAppRunning() {
+        return fetch(APP_LIST_URL, { cache: 'no-store', credentials: 'same-origin' })
+            .then(function(r) { return r.text(); })
+            .then(function(xml) {
+                var m = xml.match(new RegExp('Name="' + APP + '"[^/]*Status="([^"]+)"'));
+                return m && m[1] === 'Running';
+            })
+            .catch(function() { return false; });
+    }
+
+    // Ground truth published by the run script from `tailscale status --json`.
+    function fetchStatus() {
+        return fetch(STATUS_URL + '?t=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .catch(function() { return null; });
+    }
+
+    // Apply Tailscale's authoritative backend state onto the result object.
+    function applyStatus(result, st) {
+        var self = st.Self || {};
+        var ips = self.TailscaleIPs || st.TailscaleIPs || [];
+        var ip4 = null;
+        for (var i = 0; i < ips.length; i++) { if (/^100\./.test(ips[i])) { ip4 = ips[i]; break; } }
+        var bs = st.BackendState;
+
+        if (st.Version) result.version = String(st.Version).split('-')[0];
+
+        if (bs === 'Running' && self.Online === true) {
+            // Genuinely connected and reachable on the tailnet
+            result.state = 'connected';
+            result.url = null;
+            result.ip = ip4 || result.ip;
+            result.node = self.HostName || result.node;
+            result.tailnet = (st.CurrentTailnet && st.CurrentTailnet.Name) || result.tailnet;
+            cacheSet('ip', result.ip); cacheSet('node', result.node);
+            cacheSet('tailnet', result.tailnet); cacheSet('version', result.version);
+        } else if (bs === 'NeedsLogin' || bs === 'NeedsMachineAuth') {
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        } else if (bs === 'Running') {
+            // Backend running but node not online: either a transient network
+            // drop (no action needed) or the node was removed/expired and needs
+            // re-auth. Not connected. Keep any login URL the log parser found
+            // (status.json's AuthURL lags during the `tailscale up` re-auth
+            // window) so the login button still appears when re-auth is needed.
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        } else if (bs === 'Stopped') {
+            result.state = 'disconnected';
+            result.url = null;
+        } else {
+            // NoState / Starting / unknown
+            result.state = 'connecting';
+            result.url = st.AuthURL || result.url;
+        }
+    }
+
+    function refresh() {
+        Promise.all([
+            fetch(LOG_URL, { cache: 'no-store', credentials: 'same-origin' })
+                .then(function(r) { return r.text(); })
+                .catch(function() { return ''; }),
+            fetchStatus()
+        ]).then(function(arr) {
+            var txt = arr[0];
+            var st = arr[1];
+            var result = parse(txt || '');
+            if (txt) renderLogs(txt);
+            // Verify the app is actually running - status.json can be stale if stopped
+            checkAppRunning().then(function(running) {
+                if (!running) {
+                    result.state = 'disconnected';
+                } else if (st && st.BackendState) {
+                    // Authoritative: Tailscale's own backend state
+                    applyStatus(result, st);
+                } else if (!result.url && result.state !== 'connected') {
+                    // Fallback to log heuristic when status.json is unavailable
+                    result.state = 'connected';
+                    result.ip = result.ip || cacheGet('ip');
+                    result.node = result.node || cacheGet('node');
+                    result.tailnet = result.tailnet || cacheGet('tailnet');
+                    result.version = result.version || cacheGet('version');
+                }
+                render(result);
+            });
+        });
+    }
+
+    refresh();
+    setInterval(refresh, 5000);
+
+    // Check for updates from GitHub
+    var installedVersion = null;
+    var autoChecked = false;
+    function checkForUpdate(currentVersion, manual) {
+        if (!currentVersion) return;
+        installedVersion = currentVersion;
+        if (!manual && autoChecked) return;
+        if (!manual) autoChecked = true;
+        var btn = document.getElementById('check-update-btn');
+        if (manual && btn) btn.textContent = 'Checking...';
+        fetch('https://api.github.com/repos/Mo3he/Axis_Cam_Tailscale/releases/latest')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var tag = (data.tag_name || '').replace(/^v/, '');
+                if (!tag) return;
+                if (compareVersions(tag, currentVersion) > 0) {
+                    document.getElementById('update-version').textContent = 'v' + tag;
+                    document.getElementById('update-banner').classList.add('visible');
+                    document.getElementById('ts-version').textContent = currentVersion + ' (outdated)';
+                    if (btn) btn.textContent = 'Update Available';
+                } else {
+                    if (manual && btn) btn.textContent = 'Up to date';
+                    setTimeout(function() { if (btn) btn.textContent = 'Check for Updates'; }, 3000);
+                }
+            })
+            .catch(function() {
+                if (manual && btn) btn.textContent = 'Check failed';
+                setTimeout(function() { if (btn) btn.textContent = 'Check for Updates'; }, 3000);
+            });
+    }
+
+    document.getElementById('check-update-btn').addEventListener('click', function() {
+        if (installedVersion) checkForUpdate(installedVersion, true);
+    });
+
+    function compareVersions(a, b) {
+        var pa = a.split('.').map(Number);
+        var pb = b.split('.').map(Number);
+        for (var i = 0; i < 3; i++) {
+            if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+            if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+        }
+        return 0;
+    }
+
+    // Settings — load current param values and save on submit
+    var PARAM_URL = '/axis-cgi/param.cgi';
+    var serverInput   = document.getElementById('input-server');
+    var authInput     = document.getElementById('input-authkey');
+    var httpPortInput = document.getElementById('input-http-port');
+    var socksPortInput= document.getElementById('input-socks-port');
+    var acceptDnsInput    = document.getElementById('input-accept-dns');
+    var acceptRoutesInput = document.getElementById('input-accept-routes');
+    var advertiseRoutesInput = document.getElementById('input-advertise-routes');
+    var saveBtn       = document.getElementById('save-btn');
+    var saveStatus  = document.getElementById('save-status');
+
+    // param.cgi is used when available; on devices that lack it (e.g. some
+    // recorder/NVR-class devices) we fall back to the app's own endpoint,
+    // exposed through the manifest reverseProxy mapping at API_URL.
+    var API_URL = '/local/' + APP + '/api/settings';
+
+    // Whether this build exposes local HTTP/SOCKS5 proxies (absent on ROOT
+    // builds, which use kernel networking directly). Detected from whichever
+    // settings response actually comes back — set once and used to hide the
+    // proxy card/fields and to keep them out of the save request, since
+    // param.cgi errors the whole call's status line if asked to set a
+    // parameter name the manifest never registered.
+    var hasProxyPorts = false;
+
+    function toggleProxyUi(visible) {
+        hasProxyPorts = visible;
+        var display = visible ? '' : 'none';
+        document.getElementById('proxy-info-card').style.display = display;
+        document.getElementById('http-port-row').style.display   = display;
+        document.getElementById('socks-port-row').style.display  = display;
+    }
+
+    function updateProxyDisplay(httpPort, socksPort) {
+        if (httpPort)  { cacheSet('http-port', httpPort);  document.getElementById('ts-http-proxy').textContent  = 'http://127.0.0.1:' + httpPort; }
+        if (socksPort) { cacheSet('socks-port', socksPort); document.getElementById('ts-socks-proxy').textContent = '127.0.0.1:' + socksPort; }
+    }
+
+    function applyParamText(txt) {
+        var sm = txt.match(/root\.\S+\.CustomServer=(.*)/);
+        var am = txt.match(/root\.\S+\.AuthKey=(.*)/);
+        var hm = txt.match(/root\.\S+\.HttpProxyPort=(.*)/);
+        var km = txt.match(/root\.\S+\.Socks5Port=(.*)/);
+        var dm = txt.match(/root\.\S+\.AcceptDNS=(.*)/);
+        var rm = txt.match(/root\.\S+\.AcceptRoutes=(.*)/);
+        var avm = txt.match(/root\.\S+\.AdvertiseRoutes=(.*)/);
+        // If none of the expected keys are present the endpoint isn't param.cgi
+        // (e.g. a generic 404 page); signal the caller to use the fallback.
+        if (!sm && !hm && !km) return false;
+        if (sm) serverInput.value    = sm[1].trim();
+        if (am) authInput.value      = am[1].trim();
+        if (hm) httpPortInput.value  = hm[1].trim();
+        if (km) socksPortInput.value = km[1].trim();
+        if (dm) acceptDnsInput.checked    = dm[1].trim() === 'true';
+        if (rm) acceptRoutesInput.checked = rm[1].trim() === 'true';
+        if (avm) advertiseRoutesInput.value = avm[1].trim();
+        toggleProxyUi(!!hm && !!km);
+        updateProxyDisplay(hm ? hm[1].trim() : null, km ? km[1].trim() : null);
+        return true;
+    }
+
+    function applyJson(obj) {
+        if (typeof obj.CustomServer    === 'string') serverInput.value    = obj.CustomServer;
+        if (typeof obj.AuthKey         === 'string') authInput.value      = obj.AuthKey;
+        if (typeof obj.HttpProxyPort   === 'string') httpPortInput.value  = obj.HttpProxyPort;
+        if (typeof obj.Socks5Port      === 'string') socksPortInput.value = obj.Socks5Port;
+        if (typeof obj.AcceptDNS       === 'string') acceptDnsInput.checked    = obj.AcceptDNS === 'true';
+        if (typeof obj.AcceptRoutes    === 'string') acceptRoutesInput.checked = obj.AcceptRoutes === 'true';
+        if (typeof obj.AdvertiseRoutes === 'string') advertiseRoutesInput.value = obj.AdvertiseRoutes;
+        toggleProxyUi(typeof obj.HttpProxyPort === 'string' && typeof obj.Socks5Port === 'string');
+        updateProxyDisplay(obj.HttpProxyPort, obj.Socks5Port);
+    }
+
+    function loadSettings() {
+        fetch(PARAM_URL + '?action=list&group=root.' + APP, { credentials: 'same-origin' })
+            .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
+            .then(function(txt) { if (!applyParamText(txt)) return Promise.reject(); })
+            .catch(function() { loadSettingsFallback(); });
+    }
+
+    function loadSettingsFallback() {
+        fetch(API_URL + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(obj) { if (obj) applyJson(obj); })
+            .catch(function() {});
+    }
+
+    function setStatus(msg, cls) {
+        saveStatus.textContent = msg;
+        saveStatus.className = 'save-status' + (cls ? ' ' + cls : '');
+        if (msg) setTimeout(function() { saveStatus.textContent = ''; saveStatus.className = 'save-status'; }, 4000);
+    }
+
+    function saveViaFallback(httpPort, socksPort) {
+        var body = 'CustomServer='    + encodeURIComponent(serverInput.value.trim()) +
+                   '&AuthKey='         + encodeURIComponent(authInput.value.trim()) +
+                   (hasProxyPorts ? '&HttpProxyPort=' + encodeURIComponent(httpPort) : '') +
+                   (hasProxyPorts ? '&Socks5Port='     + encodeURIComponent(socksPort) : '') +
+                   '&AcceptDNS='       + (acceptDnsInput.checked ? 'true' : 'false') +
+                   '&AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false') +
+                   '&AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim());
+        return fetch(API_URL, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        })
+        .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
+        .then(function(txt) {
+            if (/OK/.test(txt)) {
+                // The app applies the change and restarts its tunnel itself,
+                // so no separate control.cgi restart is needed here.
+                setStatus('Saved. Restarting...', 'ok');
+            } else {
+                setStatus('Error saving settings', 'err');
+            }
+        });
+    }
+
+    saveBtn.addEventListener('click', function() {
+        saveBtn.disabled = true;
+        setStatus('Saving...', '');
+        var httpPort  = httpPortInput.value.trim()  || '8080';
+        var socksPort = socksPortInput.value.trim() || '1080';
+        var params = 'action=update' +
+            '&root.' + APP + '.CustomServer='   + encodeURIComponent(serverInput.value.trim()) +
+            '&root.' + APP + '.AuthKey='         + encodeURIComponent(authInput.value.trim()) +
+            (hasProxyPorts ? '&root.' + APP + '.HttpProxyPort=' + encodeURIComponent(httpPort) : '') +
+            (hasProxyPorts ? '&root.' + APP + '.Socks5Port='     + encodeURIComponent(socksPort) : '') +
+            '&root.' + APP + '.AcceptDNS='       + (acceptDnsInput.checked ? 'true' : 'false') +
+            '&root.' + APP + '.AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false') +
+            '&root.' + APP + '.AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim());
+        fetch(PARAM_URL, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        })
+        .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
+        .then(function(txt) {
+            if (/^OK/.test(txt.trim())) {
+                setStatus('Saved. Restarting...', 'ok');
+                // Restart the app so new settings take effect
+                return fetch('/axis-cgi/applications/control.cgi?action=restart&package=' + APP,
+                    { method: 'POST', credentials: 'same-origin' });
+            }
+            // param.cgi reachable but rejected the update — surface the error.
+            setStatus('Error: ' + txt.trim(), 'err');
+        })
+        .catch(function() {
+            // param.cgi unavailable (e.g. recorder-class device) — use the fallback.
+            return saveViaFallback(httpPort, socksPort);
+        })
+        .then(function() { saveBtn.disabled = false; })
+        .catch(function() { saveBtn.disabled = false; setStatus('Failed to save', 'err'); });
+    });
+
+    loadSettings();
+})();
+</script>
+
+</body>
+</html>

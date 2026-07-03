@@ -1,0 +1,177 @@
+#!/bin/sh
+# Tailscale VPN run script — called by the param_bridge C binary.
+# Config is sourced from $STATE_DIR/params.conf (written by param_bridge).
+# $1 selects the variant: "standard" (userspace networking + local proxies)
+# or "root" (kernel networking, no local proxy). Defaults to "standard".
+VARIANT="${1:-standard}"
+
+killall tailscaled 2>/dev/null || true
+
+APP_DIR="/usr/local/packages/Tailscale_VPN"
+STATE_DIR="$APP_DIR/localdata"
+TAILSCALED_PATH="$APP_DIR/lib/tailscaled"
+TAILSCALE_PATH="$APP_DIR/lib/tailscale"
+SOCKET_PATH="$STATE_DIR/tailscaled.sock"
+
+mkdir -p "$STATE_DIR"
+chmod 755 $TAILSCALED_PATH
+chmod 755 $TAILSCALE_PATH
+
+# Defaults — overridden by sourcing params.conf written by param_bridge
+CUSTOM_SERVER=""
+AUTH_KEY=""
+CONF_HTTP="8080"
+CONF_SOCKS="1080"
+ACCEPT_DNS="false"
+ACCEPT_ROUTES="false"
+ADVERTISE_ROUTES=""
+
+if [ -f "$STATE_DIR/params.conf" ]; then
+    . "$STATE_DIR/params.conf"
+fi
+
+if [ "$VARIANT" = "root" ]; then
+    logger -t "Tailscale_VPN" "Starting (root mode): custom_server=${CUSTOM_SERVER:-(default)}"
+else
+    logger -t "Tailscale_VPN" "Starting: http_port=$CONF_HTTP socks_port=$CONF_SOCKS custom_server=${CUSTOM_SERVER:-(default)}"
+
+    # Check whether a TCP port is already bound
+    is_port_in_use() {
+        local port=$1
+        local hex_port
+        hex_port=$(printf '%04X' "$port")
+        grep -q ":${hex_port} " /proc/net/tcp  2>/dev/null && return 0
+        grep -q ":${hex_port} " /proc/net/tcp6 2>/dev/null && return 0
+        return 1
+    }
+
+    if is_port_in_use "$CONF_HTTP"; then
+        logger -t "Tailscale_VPN" "ERROR: HTTP proxy port $CONF_HTTP is already in use. Change it in Settings."
+        exit 1
+    fi
+    if is_port_in_use "$CONF_SOCKS"; then
+        logger -t "Tailscale_VPN" "ERROR: SOCKS5 port $CONF_SOCKS is already in use. Change it in Settings."
+        exit 1
+    fi
+fi
+
+logger -t "Tailscale_VPN" "Starting tailscaled daemon"
+if [ "$VARIANT" = "root" ]; then
+    $TAILSCALED_PATH \
+        --state="$STATE_DIR/tailscaled.state" \
+        --socket=$SOCKET_PATH \
+        >/dev/null 2>&1 &
+else
+    $TAILSCALED_PATH \
+        --state="$STATE_DIR/tailscaled.state" \
+        --socket=$SOCKET_PATH \
+        --socks5-server=localhost:$CONF_SOCKS \
+        --outbound-http-proxy-listen=localhost:$CONF_HTTP \
+        --tun=userspace-networking \
+        >/dev/null 2>&1 &
+fi
+TAILSCALED_PID=$!
+
+sleep 2
+
+TAILSCALE_CMD="$TAILSCALE_PATH --socket=$SOCKET_PATH up --reset --hostname=$(hostname)"
+
+if [ -n "$CUSTOM_SERVER" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --login-server $CUSTOM_SERVER"
+fi
+
+if [ -n "$AUTH_KEY" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --authkey $AUTH_KEY"
+fi
+
+if [ "$ACCEPT_DNS" = "true" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --accept-dns=true"
+fi
+
+if [ "$ACCEPT_ROUTES" = "true" ]; then
+    TAILSCALE_CMD="$TAILSCALE_CMD --accept-routes=true"
+fi
+
+# Advertise LAN subnets so this camera acts as a subnet router. Comma-separated
+# CIDRs (e.g. 192.168.1.0/24,10.0.0.0/8). In userspace-networking mode the
+# tailscaled netstack forwards tailnet traffic to these subnets, so no kernel IP
+# forwarding is required. In kernel-networking (root) mode the host must
+# forward packets between the tailnet and the LAN, so enable IP forwarding.
+# Routes must still be approved in the Tailscale admin console either way.
+if [ -n "$ADVERTISE_ROUTES" ]; then
+    if [ "$VARIANT" = "root" ]; then
+        echo 1 > /proc/sys/net/ipv4/ip_forward 2>/dev/null || true
+        echo 1 > /proc/sys/net/ipv6/conf/all/forwarding 2>/dev/null || true
+    fi
+    TAILSCALE_CMD="$TAILSCALE_CMD --advertise-routes=$ADVERTISE_ROUTES"
+fi
+
+# Run `tailscale up` in the background and act on its outcome. If the node needs
+# (re-)authentication, `up` blocks until the user logs in; backgrounding it
+# ensures the status publisher below keeps running so the UI can surface the
+# login URL (tailscaled reports BackendState=NeedsLogin + AuthURL while waiting).
+# NOTE: `up` runs synchronously *inside* this backgrounded block so its real exit
+# code is captured directly. We must NOT background `up` separately and `wait`
+# for it from here, because in POSIX sh `wait` only works on children of the
+# current shell — a subshell waiting on the parent's child returns 127.
+{
+    eval "$TAILSCALE_CMD"
+    up_exit=$?
+    if [ "$up_exit" -eq 0 ]; then
+        if [ "$VARIANT" = "root" ]; then
+            logger -t "Tailscale_VPN" "Tailscale VPN is running (root mode)"
+        else
+            logger -t "Tailscale_VPN" "Tailscale VPN is running"
+        fi
+        # Auth succeeded with a one-time auth key — signal param_bridge to clear it
+        if [ -n "$AUTH_KEY" ]; then
+            : > "$STATE_DIR/authkey_clear"
+        fi
+    else
+        logger -t "Tailscale_VPN" "ERROR: tailscale up failed (exit $up_exit)"
+    fi
+} &
+TAILSCALE_UP_PID=$!
+
+if [ "$VARIANT" != "root" ]; then
+    logger -t "Tailscale_VPN" "HTTP/HTTPS proxy: http://127.0.0.1:$CONF_HTTP"
+    logger -t "Tailscale_VPN" "SOCKS5 proxy:     127.0.0.1:$CONF_SOCKS"
+fi
+
+# Publish tailscale's real backend state as JSON for the web UI to consume.
+# This is the authoritative connection signal (BackendState / Self.Online /
+# TailscaleIPs / AuthURL) instead of scraping syslog. Served statically at
+# /local/Tailscale_VPN/status.json.
+STATUS_FILE="$APP_DIR/html/status.json"
+
+publish_status() {
+    if "$TAILSCALE_PATH" --socket="$SOCKET_PATH" status --json > "$STATUS_FILE.tmp" 2>/dev/null; then
+        mv "$STATUS_FILE.tmp" "$STATUS_FILE" 2>/dev/null
+        chmod 644 "$STATUS_FILE" 2>/dev/null
+    else
+        rm -f "$STATUS_FILE.tmp" 2>/dev/null
+    fi
+}
+
+status_loop() {
+    while true; do
+        publish_status
+        sleep 5
+    done
+}
+status_loop &
+STATUS_LOOP_PID=$!
+
+# Clean up the status writer, up watcher, daemon and published status on
+# stop/restart so param_bridge (which signals this script) leaves no orphans or
+# stale state.
+cleanup() {
+    [ -n "$STATUS_LOOP_PID" ]   && kill "$STATUS_LOOP_PID"   2>/dev/null
+    [ -n "$TAILSCALE_UP_PID" ]  && kill "$TAILSCALE_UP_PID"  2>/dev/null
+    [ -n "$TAILSCALED_PID" ]    && kill "$TAILSCALED_PID"    2>/dev/null
+    rm -f "$STATUS_FILE" 2>/dev/null
+    exit 0
+}
+trap cleanup TERM INT
+
+wait $TAILSCALED_PID

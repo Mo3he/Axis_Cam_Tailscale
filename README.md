@@ -6,7 +6,7 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 
 - Secure remote access to cameras  
 - Easy to install via EAP package  
-- Works on **Axis OS 11.11+** (non-root version)  
+- Works on **Axis OS 10.12+** (non-root version, verified across 10.12–12.10)  
 - Works on **legacy Axis OS 9.x / 10.x** via the ACAP 3 variant  
 - Based on **WireGuard VPN** technology  
 
@@ -140,7 +140,7 @@ Then, in the camera's **System → Storage → Add network share** dialog, use `
 
 ### Manual update (advanced)
 
-Replace the binaries in the `lib/` folder:
+Replace the binaries in `common/app/lib/` (shared by `aarch64`, `armv7hf`, and their ROOT variants) or `arm_acap3/app/lib/` (legacy variant, kept separate):
 - `tailscale`
 - `tailscaled`
 
@@ -148,22 +148,26 @@ Download the latest versions: [Tailscale static builds](https://pkgs.tailscale.c
 
 #### Build locally
 
-From the main directory of the version you want (`arm` / `aarch64`):
+The Tailscale binaries are not stored in git, so first download them (see [Manual update](#manual-update-advanced) above) and place them in `common/app/lib/` — or `arm_acap3/app/lib/` for the legacy variant.
+
+All variants build from the **repository root**, pointing at the variant's own `Dockerfile`:
 
 ```bash
-docker build --tag <package_name> .
+docker build -f aarch64/Dockerfile --tag <package_name> .
 docker cp $(docker create <package_name>):/opt/app ./build
 ```
+
+(Same for the others — just swap in `arm/Dockerfile`, `aarch64_ROOT/Dockerfile`, `arm_ROOT/Dockerfile`, or `arm_acap3/Dockerfile`.)
 
 ---
 
 ## Good News
 
-Tailscale ACAP can now run **without root privileges**, making it compatible with **Axis OS 11.11+**.  
+Tailscale ACAP can now run **without root privileges**, making it compatible with **Axis OS 10.12+** — verified working across Axis OS 10.12, 11.11, and 12.10.  
 
 - Runs in **user space networking mode**.  
 
-For **full kernel networking**, use the **ROOT** version. Note: ROOT mode requires Axis OS 11.11–11.x — Axis OS 12 and later removed root access for third-party applications.
+For **full kernel networking**, use the **ROOT** version. Note: ROOT mode requires Axis OS 10.12–11.x — Axis OS 12 and later removed root access for third-party applications.
 
 ### Legacy camera support (Axis OS 9.x / 10.x)
 
@@ -196,13 +200,15 @@ The Tailscale ACAP is compatible with Axis cameras with **ARM** and **AARCH64**-
 
 | Variant | Architecture | Axis OS | Notes |
 |---|---|---|---|
-| `aarch64` | AArch64 | 11.11+ (ACAP 4) | Standard, userspace networking, configurable proxy ports |
-| `armv7hf` | ARMv7 | 11.11+ (ACAP 4) | Standard, userspace networking, configurable proxy ports |
-| `aarch64_root` | AArch64 | 11.11 – 11.x (ACAP 4) | Full kernel networking (root) — not supported on OS 12+ |
-| `armv7hf_root` | ARMv7 | 11.11 – 11.x (ACAP 4) | Full kernel networking (root) — not supported on OS 12+ |
+| `aarch64` | AArch64 | 10.12 – 13 (ACAP 4) | Standard, userspace networking, configurable proxy ports |
+| `armv7hf` | ARMv7 | 10.12 – 13 (ACAP 4) | Standard, userspace networking, configurable proxy ports |
+| `aarch64_root` | AArch64 | 10.12 – 11.x (ACAP 4) | Full kernel networking (root) — not supported on OS 12+ |
+| `armv7hf_root` | ARMv7 | 10.12 – 11.x (ACAP 4) | Full kernel networking (root) — not supported on OS 12+ |
 | `armv7hf_acap3` | ARMv7 | **9.x – 10.x** | Legacy cameras, ACAP SDK 3 |
 
-> Not sure which variant to use? Check **System → Properties → Firmware version** on your camera. Axis OS 12+ → use the standard variant (`aarch64` or `armv7hf`). Axis OS 11.11–11.x → standard variant, or ROOT if you need kernel networking. Axis OS 9.x/10.x on ARMv7 → use `armv7hf_acap3`.
+> Not sure which variant to use? Check **System → Properties → Firmware version** on your camera. Axis OS 12+ → use the standard variant (`aarch64` or `armv7hf`). Axis OS 10.12–11.x → standard variant works too, or ROOT if you need kernel networking. Axis OS 9.x → use `armv7hf_acap3`.
+>
+> The standard variant's floor was verified by live-testing the same build on Axis OS 10.12.300, 11.11.212, and 12.10.68 — it is not limited to 11.11+ as earlier releases implied. The ROOT variant was also verified on Axis OS 10.12.300 with genuine kernel networking confirmed over SSH (processes running as `root`, a real `tailscale0` kernel interface present, and `ip_forward` correctly toggling on when subnet routes are advertised) — Axis OS 10.x ran third-party apps as root by default, before the privilege sandboxing introduced later, so ROOT was never actually limited to 11.11+.
 
 You can verify your device details using the following command:
 
@@ -221,11 +227,11 @@ curl --anyauth "*" -u <username>:<password> <device_ip>/axis-cgi/basicdeviceinfo
 
 AXIS OS 13 (scheduled for September 2026) introduces several breaking changes that affect all ACAP applications. The following items are required to maintain compatibility. See the full [AXIS OS 13 breaking changes](https://www.axis.com/for-developers/news/AXIS-OS-13-breaking-changes) announcement for details.
 
-- [ ] **Recompile for 64-bit time (Y2038)** - AXIS OS 13 switches to a 64-bit time interface. All ACAP apps must be recompiled against the updated SDK. Cameras with incompatible apps installed will roll back the OS upgrade rather than proceed.
-- [ ] **Sign the ACAP via the Axis ACAP Portal** - AXIS OS 13 removes the ability to install unsigned applications in production environments. The app must be submitted and signed through the official Axis ACAP Portal to remain installable.
-- [ ] **Migrate to Manifest Schema v2** - The `manifest.json` must use Manifest Schema v2, including an explicit declaration of compatible AXIS OS versions, to satisfy the new signing and compatibility requirements.
-- [ ] **Audit for executable stack usage** - Any ACAP compiled with an executable stack must be recompiled to comply with the new security restrictions in AXIS OS 13.
-- [ ] **Verify web UI works over HTTPS** - AXIS OS 13 enforces HTTPS-only connections by default. The bundled web UI must be tested to confirm it functions correctly under this constraint.
+- [x] **Recompile for 64-bit time (Y2038)** - AXIS OS 13 switches to a 64-bit time interface. All ACAP apps must be recompiled against the updated SDK. Cameras with incompatible apps installed will roll back the OS upgrade rather than proceed. Done for the standard `aarch64`/`armv7hf` builds (now built against ACAP Native SDK 12.10.0); the ROOT variants intentionally stay on the older SDK since Axis OS 12+ never supports root third-party apps, so they can never reach OS 13 regardless.
+- [x] **Migrate to Manifest Schema v2** - The `manifest.json` must use Manifest Schema v2, including an explicit declaration of compatible AXIS OS versions, to satisfy the new signing and compatibility requirements. Done for `aarch64`/`armv7hf` (schema 2.0.0, `compatibleOsVersions` declared); verified this does not break installability on older firmware (OS 10.12–12.10 all tested and working) before promoting it as the standard build.
+- [x] **Audit for executable stack usage** - Any ACAP compiled with an executable stack must be recompiled to comply with the new security restrictions in AXIS OS 13. Checked all compiled binaries (`param_bridge` for `aarch64`/`armv7hf`, both standard and ROOT, plus the bundled `tailscale`/`tailscaled` Go binaries) via `objdump`'s `GNU_STACK` program header — all report `flags rw-` (no executable stack) on every architecture and variant.
+- [x] **Verify web UI works over HTTPS** - AXIS OS 13 enforces HTTPS-only connections by default. The bundled web UI must be tested to confirm it functions correctly under this constraint. Verified live: the page and every endpoint it calls (`param.cgi` GET/update, the `reverseProxy` settings API GET/POST, `applications/list.cgi`, `systemlog.cgi`, the restart trigger) all work correctly over HTTPS. The UI only ever issues relative-path requests (no hardcoded `http://` fetch targets), so it inherits the page's own protocol with no mixed-content risk.
+- [ ] **Sign the ACAP via the Axis ACAP Portal** - AXIS OS 13 removes the ability to install unsigned applications in production environments. The app must be submitted and signed through the official Axis ACAP Portal to remain installable. Deferred for now — the manifest's `vendorId` is a placeholder value, not yet a portal-registered one.
 
 ### General Improvements
 

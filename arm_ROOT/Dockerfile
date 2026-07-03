@@ -7,7 +7,8 @@ ARG SDK=acap-native-sdk
 FROM ${REPO}/${SDK}:${VERSION}-${ARCH}-ubuntu${UBUNTU_VERSION}
 
 # Building the ACAP application
-COPY ./app /opt/app/
+COPY common/app /opt/app/
+COPY arm_ROOT/app/manifest.json /opt/app/manifest.json
 WORKDIR /opt/app
 RUN arm-linux-gnueabihf-strip -s lib/tailscale lib/tailscaled
 RUN . /opt/axis/acapsdk/environment-setup* && acap-build -a Tailscale_VPN_run ./

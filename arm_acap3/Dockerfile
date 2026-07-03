@@ -4,7 +4,7 @@ FROM axisecp/acap-sdk:3.5-armv7hf-ubuntu${UBUNTU_VERSION}
 RUN apt-get update -qq && apt-get install -y --no-install-recommends upx-ucl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY ./app /opt/app/
+COPY arm_acap3/app /opt/app/
 WORKDIR /opt/app
 
 # Rename the shell startup script (the ELF launcher will take the Tailscale_VPN name)
