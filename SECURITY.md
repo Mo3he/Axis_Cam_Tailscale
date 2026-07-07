@@ -9,7 +9,7 @@ Please report security issues privately rather than in a public issue:
 
 - Use GitHub's "Report a vulnerability" (Security > Advisories) to open a
   private advisory, or
-- email moshe@mohome.net.
+- email <moshe@mohome.net>.
 
 Include the affected version (or `.eap` filename), camera model / Axis OS
 version, a description and its impact, and reproduction steps if available. You

@@ -6,15 +6,15 @@ code is licensed separately (see `LICENSE`, BSD 3-Clause).
 ## Tailscale
 
 - Copyright (c) 2020 Tailscale & AUTHORS
-- Project: https://github.com/tailscale/tailscale
+- Project: <https://github.com/tailscale/tailscale>
 - License: BSD 3-Clause
 
 Tailscale is a product of Tailscale Inc. This package independently
 redistributes the Tailscale binaries and is not affiliated with, endorsed by, or
 supported by Tailscale Inc. For the official Tailscale client, visit
-https://tailscale.com.
+<https://tailscale.com>.
 
-```
+```text
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
