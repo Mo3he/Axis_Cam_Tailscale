@@ -1,0 +1,11 @@
+---
+# Line length
+MD013:
+    line_length: 132
+# Allow blank lines inside blockquotes
+MD028: false
+# First line in a file should be a top-level heading
+MD041: false
+# Table padding
+MD060:
+    style: "padded"
