@@ -1,7 +1,20 @@
-BSD 3-Clause License
+# Third-Party Notices
 
-Copyright (c) 2022, Weston Blieden
+This ACAP package redistributes the Tailscale client. The ACAP's own wrapper
+code is licensed separately (see `LICENSE`, BSD 3-Clause).
 
+## Tailscale
+
+- Copyright (c) 2020 Tailscale & AUTHORS
+- Project: https://github.com/tailscale/tailscale
+- License: BSD 3-Clause
+
+Tailscale is a product of Tailscale Inc. This package independently
+redistributes the Tailscale binaries and is not affiliated with, endorsed by, or
+supported by Tailscale Inc. For the official Tailscale client, visit
+https://tailscale.com.
+
+```
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
@@ -12,9 +25,9 @@ modification, are permitted provided that the following conditions are met:
    this list of conditions and the following disclaimer in the documentation
    and/or other materials provided with the distribution.
 
-3. Neither the name of the copyright holder nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,9 +39,4 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
---------------------------------------------------------------------------------
-
-This distribution redistributes the Tailscale client (BSD 3-Clause,
-Copyright (c) 2020 Tailscale & AUTHORS). See THIRD_PARTY_NOTICES.md for the full
-attribution and license text.
+```
