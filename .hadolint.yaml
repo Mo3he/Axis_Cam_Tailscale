@@ -1,0 +1,8 @@
+---
+# Enforce error-level Dockerfile correctness. Warnings/info are advisory: the
+# ACAP cross-compile Dockerfiles use accepted patterns (cd in RUN, ARG-templated
+# FROM tags hadolint cannot resolve, optional pipefail).
+failure-threshold: error
+ignored:
+  # Pin versions in 'apt-get install' - the SDK base image is already pinned.
+  - DL3008

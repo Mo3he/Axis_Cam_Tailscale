@@ -16,7 +16,7 @@ This repository provides an **ACAP package** that installs the [Tailscale VPN cl
 [![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-lightgrey?logo=github)](https://github.com/sponsors/Mo3he)  
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-orange?style=flat&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/mo3he)
 
-> **Disclaimer:** This is an independent, community-developed ACAP package and is not an official Axis Communications product. It is not affiliated with, endorsed by, or supported by Axis Communications AB. Use it at your own risk. For official Axis software, visit axis.com 
+> **Disclaimer:** This is an independent, community-developed ACAP package and is not an official Axis Communications product. It is not affiliated with, endorsed by, or supported by Axis Communications AB. Use it at your own risk. For official Axis software, visit axis.com
 
 > **Tailscale Notice:** Tailscale is a product of Tailscale Inc. This package independently redistributes the Tailscale binaries under the [BSD 3-Clause License](LICENSE) and is not affiliated with, endorsed by, or supported by Tailscale Inc. For the official Tailscale client, visit [tailscale.com](https://tailscale.com).
 ---
@@ -47,7 +47,8 @@ Get the **prebuilt `.eap` file** from the [Releases page](https://github.com/Mo3
 3. Upload the `.eap` file.  
 
 Once installed:
-- Start the app. 
+
+- Start the app.
 - Click **Open** to view logs and get your Tailscale authentication URL.  
 - On uninstall, all changes/files are removed.  
 
@@ -80,6 +81,7 @@ All parameters are configurable via the web UI (**Open → Settings** card) and 
 
 ---
 
+### Proxy Support
 
 All non-ROOT variants expose two local proxy endpoints that route outbound traffic through the Tailscale tunnel. The ports are configurable via **Settings → HTTP Proxy Port / SOCKS5 Proxy Port** in the web UI.
 
@@ -118,6 +120,7 @@ There is an important asymmetry to understand. Making the camera **reachable fro
 In short: on non-root builds the proxies cover apps that know how to use a proxy, but a system feature like "add network share" opens a raw socket that never touches the tunnel. The ROOT build is the clean way to let the camera *consume* tailnet services.
 
 ### Plan B: reverse-SSH tunnel
+>
 > **Requires root on the camera.** Port 445 is privileged, so binding it needs a root-capable build (e.g. developer certificates installed).
 
 If you cannot use the ROOT build but still need the camera to mount a share on a machine that is on your tailnet, you can make the remote share appear **local** to the camera with a reverse SSH tunnel. Because the destination becomes `127.0.0.1`, the proxy-unaware SMB client never has to route over the tailnet.
@@ -141,6 +144,7 @@ Then, in the camera's **System → Storage → Add network share** dialog, use `
 ### Manual update (advanced)
 
 Replace the binaries in `common/app/lib/` (shared by `aarch64`, `armv7hf`, and their ROOT variants) or `arm_acap3/app/lib/` (legacy variant, kept separate):
+
 - `tailscale`
 - `tailscaled`
 
@@ -178,6 +182,7 @@ An **ACAP 3** variant (`armv7hf_acap3`) is available for older cameras that do n
 ## Purpose
 
 Adding a VPN client directly to the camera enables:  
+
 - Secure remote access without additional hardware or complex network configuration.  
 - Easy setup through Tailscale’s lightweight WireGuard-based tunnel.  
 

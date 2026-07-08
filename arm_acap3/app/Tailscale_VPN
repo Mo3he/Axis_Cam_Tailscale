@@ -16,19 +16,19 @@ logger -t "Tailscale_VPN" "Starting tailscaled daemon"
 # Log to file (not piped through logger) -- avoids extra logger process holding
 # tailscaled stdout open, which prevents our wait loop from detecting exit
 "$APP_DIR/lib/tailscaled" \
-    --state="$STATE_DIR/tailscaled.state" \
-    --socket="$STATE_DIR/tailscaled.sock" \
-    --socks5-server=localhost:1055 \
-    --outbound-http-proxy-listen=localhost:8080 \
-    --tun=userspace-networking \
-    >> "$STATE_DIR/tailscaled.log" 2>&1 &
+	--state="$STATE_DIR/tailscaled.state" \
+	--socket="$STATE_DIR/tailscaled.sock" \
+	--socks5-server=localhost:1055 \
+	--outbound-http-proxy-listen=localhost:8080 \
+	--tun=userspace-networking \
+	>>"$STATE_DIR/tailscaled.log" 2>&1 &
 TAILSCALED_PID=$!
 
 # Wait for socket to appear (up to 15 seconds)
 i=0
 while [ $i -lt 15 ] && [ ! -S "$STATE_DIR/tailscaled.sock" ]; do
-    sleep 1
-    i=$((i + 1))
+	sleep 1
+	i=$((i + 1))
 done
 
 logger -t "Tailscale_VPN" "Connecting to Tailscale network"
@@ -37,9 +37,9 @@ logger -t "Tailscale_VPN" "Connecting to Tailscale network"
 # cameras with limited RAM (e.g. 222 MB).
 # Capture output so we can extract auth URL and log it to syslog for the web UI.
 UP_OUT=$("$APP_DIR/lib/tailscale" \
-    --socket="$STATE_DIR/tailscaled.sock" \
-    up --hostname="$(hostname)" --timeout=10s 2>&1) || true
-echo "$UP_OUT" >> "$STATE_DIR/tailscaled.log"
+	--socket="$STATE_DIR/tailscaled.sock" \
+	up --hostname="$(hostname)" --timeout=10s 2>&1) || true
+echo "$UP_OUT" >>"$STATE_DIR/tailscaled.log"
 
 # If an auth URL was returned, log it so the web UI can show it
 AUTH_URL=$(echo "$UP_OUT" | grep -o 'https://login\.tailscale\.com/[^ ]*' | head -1)
@@ -48,7 +48,7 @@ AUTH_URL=$(echo "$UP_OUT" | grep -o 'https://login\.tailscale\.com/[^ ]*' | head
 # Log IP and version into syslog so the web UI details panel can populate
 TS_IP=$("$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" ip -4 2>/dev/null | head -1)
 TS_VER=$("$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" version 2>/dev/null | head -1)
-[ -n "$TS_IP" ]  && logger -t "Tailscale_VPN" "Tailscale IP: $TS_IP"
+[ -n "$TS_IP" ] && logger -t "Tailscale_VPN" "Tailscale IP: $TS_IP"
 [ -n "$TS_VER" ] && logger -t "Tailscale_VPN" "Tailscale version: $TS_VER"
 
 logger -t "Tailscale_VPN" "Tailscale VPN is running"
@@ -63,19 +63,19 @@ logger -t "Tailscale_VPN" "SOCKS5 proxy:     127.0.0.1:1055"
 STATUS_FILE="$STATE_DIR/status.json"
 
 publish_status() {
-    if "$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" status --json > "$STATUS_FILE.tmp" 2>/dev/null; then
-        mv "$STATUS_FILE.tmp" "$STATUS_FILE" 2>/dev/null
-        chmod 644 "$STATUS_FILE" 2>/dev/null
-    else
-        rm -f "$STATUS_FILE.tmp" 2>/dev/null
-    fi
+	if "$APP_DIR/lib/tailscale" --socket="$STATE_DIR/tailscaled.sock" status --json >"$STATUS_FILE.tmp" 2>/dev/null; then
+		mv "$STATUS_FILE.tmp" "$STATUS_FILE" 2>/dev/null
+		chmod 644 "$STATUS_FILE" 2>/dev/null
+	else
+		rm -f "$STATUS_FILE.tmp" 2>/dev/null
+	fi
 }
 
 # Remove stale status on stop so the UI does not show a connected node after exit.
 cleanup() {
-    rm -f "$STATUS_FILE" 2>/dev/null
-    [ -n "$TAILSCALED_PID" ] && kill "$TAILSCALED_PID" 2>/dev/null
-    exit 0
+	rm -f "$STATUS_FILE" 2>/dev/null
+	[ -n "$TAILSCALED_PID" ] && kill "$TAILSCALED_PID" 2>/dev/null
+	exit 0
 }
 trap cleanup TERM INT
 
@@ -83,8 +83,8 @@ trap cleanup TERM INT
 # status fresh. This keeps the parent Tailscale_VPN (C launcher) in the process
 # table so pidof finds it and the camera web UI shows "Running" instead of "Stopped".
 while kill -0 "$TAILSCALED_PID" 2>/dev/null; do
-    publish_status
-    sleep 5
+	publish_status
+	sleep 5
 done
 
 rm -f "$STATUS_FILE" 2>/dev/null

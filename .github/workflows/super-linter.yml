@@ -1,0 +1,22 @@
+---
+name: Lint
+
+on: push
+
+jobs:
+  Build:
+    name: Lint code base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Environment
+        run: cat .github/super-linter.env >> "$GITHUB_ENV"
+
+      - name: Lint code base
+        uses: super-linter/super-linter/slim@v8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

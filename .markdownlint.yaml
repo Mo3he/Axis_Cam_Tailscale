@@ -1,7 +1,8 @@
 ---
-# Line length
-MD013:
-    line_length: 132
+# Line length (disabled: long lines in tables, URLs and prose are acceptable)
+MD013: false
+# Allow inline HTML (e.g. <img> logos and badges in READMEs)
+MD033: false
 # Allow blank lines inside blockquotes
 MD028: false
 # First line in a file should be a top-level heading
