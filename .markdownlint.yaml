@@ -7,6 +7,5 @@ MD033: false
 MD028: false
 # First line in a file should be a top-level heading
 MD041: false
-# Table padding
-MD060:
-    style: "padded"
+# Table column style (disabled; the previous "padded" value was invalid)
+MD060: false
