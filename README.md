@@ -1,74 +1,103 @@
 # Tailscale ACAP for Axis Cameras
 
+[![Release](https://img.shields.io/github/v/release/Mo3he/Axis_Cam_Tailscale?style=flat)](https://github.com/Mo3he/Axis_Cam_Tailscale/releases)
+[![License](https://img.shields.io/github/license/Mo3he/Axis_Cam_Tailscale?style=flat)](LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/Mo3he/Axis_Cam_Tailscale/total?label=Downloads&color=blue&style=flat)](https://github.com/Mo3he/Axis_Cam_Tailscale/releases)
+[![Build](https://github.com/Mo3he/Axis_Cam_Tailscale/actions/workflows/build.yml/badge.svg)](https://github.com/Mo3he/Axis_Cam_Tailscale/actions/workflows/build.yml)
+[![Super-Linter](https://github.com/Mo3he/Axis_Cam_Tailscale/actions/workflows/super-linter.yml/badge.svg)](https://github.com/Mo3he/Axis_Cam_Tailscale/actions/workflows/super-linter.yml)
+[![Sponsor](https://img.shields.io/badge/Sponsor%20My%20Work-EA4AAA?style=flat&logo=github&logoColor=white)](https://github.com/sponsors/Mo3he)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mo3he)
+
+This repository provides an **ACAP package** that installs the
+[Tailscale VPN client](https://tailscale.com/) on Axis cameras, for secure remote
+access without extra hardware or complex network configuration.
+
 **[Visit the Homepage](https://mo3he.github.io/Axis_Cam_Tailscale/)**
 
-This repository provides an **ACAP package** that installs the [Tailscale VPN client](https://tailscale.com/) on Axis cameras.
+> **Disclaimer:** Independent, community-developed ACAP package. Not an official
+> Axis product and not affiliated with, endorsed by, or supported by Axis
+> Communications AB or Tailscale Inc. Use at your own risk.
 
-- Secure remote access to cameras  
-- Easy to install via EAP package  
-- Works on **Axis OS 10.12+** (non-root version, verified across 10.12–12.10)  
-- Works on **legacy Axis OS 9.x / 10.x** via the ACAP 3 variant  
-- Based on **WireGuard VPN** technology  
-
-[![Releases](https://img.shields.io/github/v/release/Mo3he/Axis_Cam_Tailscale)](https://github.com/Mo3he/Axis_Cam_Tailscale/releases)  
-[![License](https://img.shields.io/github/license/Mo3he/Axis_Cam_Tailscale)](LICENSE)  
-![Total Downloads](https://img.shields.io/github/downloads/Mo3he/Axis_Cam_Tailscale/total?style=flat&label=Downloads&color=blue)  
-[![Sponsor](https://img.shields.io/badge/Sponsor%20My%20Work-grey?logo=github)](https://github.com/sponsors/Mo3he)  
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-grey?style=flat&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/mo3he)
-
-> **Disclaimer:** This is an independent, community-developed ACAP package and is not an official Axis Communications product. It is not affiliated with, endorsed by, or supported by Axis Communications AB. Use it at your own risk. For official Axis software, visit axis.com
-
-> **Tailscale Notice:** Tailscale is a product of Tailscale Inc. This package independently redistributes the Tailscale binaries under the [BSD 3-Clause License](LICENSE) and is not affiliated with, endorsed by, or supported by Tailscale Inc. For the official Tailscale client, visit [tailscale.com](https://tailscale.com).
----
+> **Tailscale Notice:** Tailscale is a product of Tailscale Inc. This package
+> independently redistributes the Tailscale binaries under the
+> [BSD 3-Clause License](LICENSE) and is not affiliated with, endorsed by, or
+> supported by Tailscale Inc. For the official Tailscale client, visit
+> [tailscale.com](https://tailscale.com).
 
 ## Table of Contents
 
-- [Installation](#installation)  
-- [Usage](#usage)  
-- [Settings](#settings)  
-- [Proxy Support](#proxy-support)  
-- [Accessing Tailnet Services from the Camera](#accessing-tailnet-services-from-the-camera)  
-- [Updating Tailscale](#updating-tailscale)  
-- [Purpose](#purpose)  
-- [Useful Links](#useful-links)  
-- [Compatibility](#compatibility)  
-- [Roadmap](#roadmap)  
-- [Star History](#star-history)  
-- [Support](#support)  
+- [Overview](#overview)
+- [Compatibility](#compatibility)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Ports & security](#ports--security)
+- [Accessing Tailnet services from the camera](#accessing-tailnet-services-from-the-camera)
+- [Updating Tailscale](#updating-tailscale)
+- [Build from source](#build-from-source)
+- [Roadmap](#roadmap)
+- [Links](#links)
+- [License](#license)
 
----
+## Overview
+
+Adding a VPN client directly to the camera enables secure remote access without
+additional hardware or complex network configuration, through Tailscale's
+lightweight WireGuard-based tunnel.
+
+- Secure remote access to cameras.
+- Easy to install via EAP package.
+- Works on **AXIS OS 10.12+** (non-root version, verified across 10.12–12.10).
+- Works on **legacy AXIS OS 9.x / 10.x** via the ACAP 3 variant.
+- Based on **WireGuard VPN** technology.
+
+Tailscale ACAP runs **without root privileges** in userspace networking mode,
+making it compatible with AXIS OS 10.12+. For **full kernel networking**, use the
+**ROOT** version (AXIS OS 10.12–11.x only; AXIS OS 12 and later removed root
+access for third-party applications). Learn more:
+[How Tailscale Works](https://tailscale.com/blog/how-tailscale-works/).
+
+## Compatibility
+
+| Build | AXIS OS | Architecture | Notes |
+|---|---|---|---|
+| ACAP 4 (native SDK) | 10.12 – 13 | aarch64 | Standard, userspace networking |
+| ACAP 4 (native SDK) | 10.12 – 13 | armv7hf | Standard, userspace networking |
+| ACAP 4 root | 10.12 – 11.x | aarch64 | Full kernel networking (not on OS 12+) |
+| ACAP 4 root | 10.12 – 11.x | armv7hf | Full kernel networking (not on OS 12+) |
+| ACAP 3 (legacy SDK) | 9.x – 10.x | armv7hf | Legacy cameras |
+
+> Most cameras use the standard **ACAP 4** build. The **root** builds add
+> kernel-level networking but only run on AXIS OS 10.12–11.x (AXIS OS 12+ removed
+> root access for ACAPs). Use the **ACAP 3** build only on legacy cameras that
+> don't support ACAP 4 (AXIS OS 9–10).
 
 ## Installation
 
-Get the **prebuilt `.eap` file** from the [Releases page](https://github.com/Mo3he/Axis_Cam_Tailscale/releases).
+Get the **prebuilt `.eap` file** from the
+[Releases page](https://github.com/Mo3he/Axis_Cam_Tailscale/releases).
 
-1. Log into your Axis camera.  
-2. Go to **Apps → Add App**.  
-3. Upload the `.eap` file.  
+1. Log into your Axis camera.
+2. Go to **Apps -> Add App**.
+3. Upload the `.eap` file.
 
 Once installed:
 
 - Start the app.
-- Click **Open** to view logs and get your Tailscale authentication URL.  
-- On uninstall, all changes/files are removed.  
+- Click **Open** to view logs and get your Tailscale authentication URL.
+- On uninstall, all changes/files are removed.
 
 > You'll need a [Tailscale account](https://tailscale.com/) to authenticate.
 
----
+## Configuration
 
-## Usage
+The app runs a C-based parameter bridge that reads settings from the ACAP
+parameter store and launches Tailscale. View logs and connection status via the
+**Open** button in the app, and authenticate using the provided URL or by
+pre-entering an auth key in **Settings**. Parameter changes (ports, server URL,
+auth key) are applied automatically without reinstalling the app.
 
-- Runs a C-based parameter bridge (compiled via ACAP SDK 1.15.1) that reads settings from the ACAP parameter store and launches Tailscale.  
-- View logs and connection status via the **Open** button in the app.  
-- Authenticate using the provided URL, or pre-enter an auth key in **Settings**.  
-- Change the **Custom Server URL** in Settings to use a self-hosted [Headscale](https://headscale.net/) control server.
-- Parameter changes (ports, server URL, auth key) are applied automatically without needing to reinstall the app.
-
----
-
-## Settings
-
-All parameters are configurable via the web UI (**Open → Settings** card) and take effect immediately without reinstalling:
+All parameters are configurable via the web UI (**Open -> Settings** card) and
+take effect immediately:
 
 | Parameter | Default | Description |
 |---|---|---|
@@ -76,183 +105,138 @@ All parameters are configurable via the web UI (**Open → Settings** card) and 
 | Auth Key | *(empty)* | Pre-authentication key (`tskey-auth-...`). Cleared automatically after first successful connection. Leave blank to authenticate via browser. |
 | HTTP Proxy Port | `8080` | Port for the outbound HTTP/HTTPS proxy. |
 | SOCKS5 Proxy Port | `1080` | Port for the outbound SOCKS5 proxy. |
-| Accept DNS | `off` | Passes `--accept-dns=true` to `tailscale up`. Allows the tailnet to push DNS settings to the camera. Off by default to avoid overriding the camera's DNS configuration. Not available on `armv7hf_acap3`. |
-| Accept Routes | `off` | Passes `--accept-routes=true` to `tailscale up`. Allows the camera to use subnet routes advertised by other nodes in the tailnet. Not available on `armv7hf_acap3`. |
+| Accept DNS | `off` | Passes `--accept-dns=true` to `tailscale up`. Allows the tailnet to push DNS settings to the camera. Not available on `armv7hf_acap3`. |
+| Accept Routes | `off` | Passes `--accept-routes=true` to `tailscale up`. Allows the camera to use subnet routes advertised by other nodes. Not available on `armv7hf_acap3`. |
 
----
+## Ports & security
 
-### Proxy Support
+All non-ROOT variants expose two local proxy endpoints that route outbound
+traffic through the Tailscale tunnel. The ports are configurable via **Settings
+-> HTTP Proxy Port / SOCKS5 Proxy Port**.
 
-All non-ROOT variants expose two local proxy endpoints that route outbound traffic through the Tailscale tunnel. The ports are configurable via **Settings → HTTP Proxy Port / SOCKS5 Proxy Port** in the web UI.
-
-### HTTP CONNECT Proxy — `http://127.0.0.1:8080` (default)
-
-Routes HTTP and HTTPS traffic. Set this wherever an HTTP/HTTPS proxy field is available on the camera:
-
-| Location | Field | Value |
+| Proxy | Default address | Routes |
 |---|---|---|
-| System → Network → Global proxies | HTTP proxy | `http://127.0.0.1:<port>` |
-| System → Network → Global proxies | HTTPS proxy | `http://127.0.0.1:<port>` |
-| System → MQTT → Broker | HTTP proxy | `http://127.0.0.1:<port>` |
-| System → MQTT → Broker | HTTPS proxy | `http://127.0.0.1:<port>` |
+| HTTP CONNECT | `http://127.0.0.1:8080` | HTTP and HTTPS traffic |
+| SOCKS5 | `127.0.0.1:1080` | Any SOCKS5-aware app or service |
 
-### SOCKS5 Proxy — `127.0.0.1:1080` (default)
+Set the HTTP CONNECT proxy wherever an HTTP/HTTPS proxy field is available on the
+camera (System -> Network -> Global proxies; System -> MQTT -> Broker). For
+SOCKS5-aware apps, set their proxy to `127.0.0.1:<port>`.
 
-For ACAP apps or services that support SOCKS5, set their proxy to `127.0.0.1:<port>`.
+> **Security:** the proxies bind to **loopback only** (`127.0.0.1`), so they are
+> not exposed on the camera's network interface, the least-exposed of the VPN
+> ACAPs. The active proxy addresses are shown in the **Proxy Configuration** card
+> of the web UI. If you change a port that is already in use, the app logs an
+> error and exits rather than silently falling back.
 
-> The active proxy addresses are always shown in the **Proxy Configuration** card of the web UI.
+## Accessing Tailnet services from the camera
 
-> If you change a port that is already in use by another process, the app will log an error and exit rather than silently falling back to a different port.
-
----
-
-## Accessing Tailnet Services from the Camera
-
-There is an important asymmetry to understand. Making the camera **reachable from** the tailnet (browsing to it, VAPIX, SSH from another tailnet node) works on every build. The harder direction is the camera **reaching out to** a tailnet peer, for example mounting an SMB/CIFS network share hosted on another node. How well this works depends on which build you use.
-
-### Why the build matters
+There is an important asymmetry. Making the camera **reachable from** the tailnet
+(browsing to it, VAPIX, SSH from another tailnet node) works on every build. The
+harder direction is the camera **reaching out to** a tailnet peer, for example
+mounting an SMB/CIFS share hosted on another node. How well this works depends on
+the build:
 
 | Build | Networking mode | Camera-initiated access to tailnet peers |
 |---|---|---|
-| Non-root (`aarch64`, `armv7hf`) and `armv7hf_acap3` | `--tun=userspace-networking` (no kernel `tailscale0` interface) | Only through the local **SOCKS5 / HTTP proxies**, and only for **proxy-aware** apps. Firmware system services (the SMB share client, NTP, etc.) are proxy-unaware, so they **cannot** reach a peer's `100.x` Tailscale IP directly. |
+| Non-root (`aarch64`, `armv7hf`) and `armv7hf_acap3` | `--tun=userspace-networking` (no kernel `tailscale0`) | Only through the local **SOCKS5 / HTTP proxies**, and only for **proxy-aware** apps. Firmware system services (SMB client, NTP, etc.) are proxy-unaware and **cannot** reach a peer's `100.x` IP directly. |
 | **ROOT** (`aarch64_root`, `armv7hf_root`) | Kernel networking with a real `tailscale0` interface | Peer `100.x` IPs are routable at the OS level, so firmware services **can** connect directly. Enable **Accept Routes** to also reach subnets behind other nodes. |
 
-In short: on non-root builds the proxies cover apps that know how to use a proxy, but a system feature like "add network share" opens a raw socket that never touches the tunnel. The ROOT build is the clean way to let the camera *consume* tailnet services.
-
 ### Plan B: reverse-SSH tunnel
->
-> **Requires root on the camera.** Port 445 is privileged, so binding it needs a root-capable build (e.g. developer certificates installed).
 
-If you cannot use the ROOT build but still need the camera to mount a share on a machine that is on your tailnet, you can make the remote share appear **local** to the camera with a reverse SSH tunnel. Because the destination becomes `127.0.0.1`, the proxy-unaware SMB client never has to route over the tailnet.
+> **Requires root on the camera.** Port 445 is privileged, so binding it needs a
+> root-capable build (e.g. developer certificates installed).
 
-From a computer that has both the share and tailnet access to the camera:
+If you cannot use the ROOT build but still need the camera to mount a share on a
+machine that is on your tailnet, make the remote share appear **local** to the
+camera with a reverse SSH tunnel. Because the destination becomes `127.0.0.1`, the
+proxy-unaware SMB client never has to route over the tailnet.
 
 ```bash
 # Forward the camera's local port 445 back to the SMB share on this machine
 ssh -R 445:localhost:445 root@<camera-tailscale-ip>
 ```
 
-Then, in the camera's **System → Storage → Add network share** dialog, use `127.0.0.1` as the share host and connect.
-
----
+Then, in **System -> Storage -> Add network share**, use `127.0.0.1` as the share
+host and connect.
 
 ## Updating Tailscale
 
-- New `.eap` files are auto-built and released **weekly** (if a new Tailscale version is available).  
-- To update, simply install the new `.eap` over the existing one.  
+- New `.eap` files are auto-built and released **weekly** (if a new Tailscale
+  version is available).
+- To update, simply install the new `.eap` over the existing one.
 
 ### Manual update (advanced)
 
-Replace the binaries in `common/app/lib/` (shared by `aarch64`, `armv7hf`, and their ROOT variants) or `arm_acap3/app/lib/` (legacy variant, kept separate):
+Replace the binaries in `common/app/lib/` (shared by `aarch64`, `armv7hf`, and
+their ROOT variants) or `arm_acap3/app/lib/` (legacy variant, kept separate):
 
 - `tailscale`
 - `tailscaled`
 
-Download the latest versions: [Tailscale static builds](https://pkgs.tailscale.com/stable/#static)
+Download the latest versions:
+[Tailscale static builds](https://pkgs.tailscale.com/stable/#static).
 
-#### Build locally
+## Build from source
 
-The Tailscale binaries are not stored in git, so first download them (see [Manual update](#manual-update-advanced) above) and place them in `common/app/lib/` — or `arm_acap3/app/lib/` for the legacy variant.
+The Tailscale binaries are not stored in git, so first download them (see
+[Manual update](#manual-update-advanced)) and place them in `common/app/lib/`, or
+`arm_acap3/app/lib/` for the legacy variant.
 
-All variants build from the **repository root**, pointing at the variant's own `Dockerfile`:
+All variants build from the **repository root**, pointing at the variant's own
+`Dockerfile`:
 
 ```bash
 docker build -f aarch64/Dockerfile --tag <package_name> .
 docker cp $(docker create <package_name>):/opt/app ./build
 ```
 
-(Same for the others — just swap in `arm/Dockerfile`, `aarch64_ROOT/Dockerfile`, `arm_ROOT/Dockerfile`, or `arm_acap3/Dockerfile`.)
-
----
-
-## Good News
-
-Tailscale ACAP can now run **without root privileges**, making it compatible with **Axis OS 10.12+** — verified working across Axis OS 10.12, 11.11, and 12.10.  
-
-- Runs in **user space networking mode**.  
-
-For **full kernel networking**, use the **ROOT** version. Note: ROOT mode requires Axis OS 10.12–11.x — Axis OS 12 and later removed root access for third-party applications.
-
-### Legacy camera support (Axis OS 9.x / 10.x)
-
-An **ACAP 3** variant (`armv7hf_acap3`) is available for older cameras that do not support ACAP 4 / Axis OS 11+. It uses the same userspace networking mode and web UI, built against the ACAP SDK 3.5 toolchain.
-
----
-
-## Purpose
-
-Adding a VPN client directly to the camera enables:  
-
-- Secure remote access without additional hardware or complex network configuration.  
-- Easy setup through Tailscale’s lightweight WireGuard-based tunnel.  
-
-Learn more: [How Tailscale Works](https://tailscale.com/blog/how-tailscale-works/)
-
----
-
-## Useful Links
-
-- [Tailscale](https://tailscale.com/)  
-- [Tailscale GitHub](https://github.com/tailscale/tailscale)  
-- [WireGuard](https://www.wireguard.com/)  
-- [Axis Communications](https://www.axis.com/)  
-
----
-
-## Compatibility
-
-The Tailscale ACAP is compatible with Axis cameras with **ARM** and **AARCH64**-based SoCs.
-
-| Variant | Architecture | Axis OS | Notes |
-|---|---|---|---|
-| `aarch64` | AArch64 | 10.12 – 13 (ACAP 4) | Standard, userspace networking, configurable proxy ports |
-| `armv7hf` | ARMv7 | 10.12 – 13 (ACAP 4) | Standard, userspace networking, configurable proxy ports |
-| `aarch64_root` | AArch64 | 10.12 – 11.x (ACAP 4) | Full kernel networking (root) — not supported on OS 12+ |
-| `armv7hf_root` | ARMv7 | 10.12 – 11.x (ACAP 4) | Full kernel networking (root) — not supported on OS 12+ |
-| `armv7hf_acap3` | ARMv7 | **9.x – 10.x** | Legacy cameras, ACAP SDK 3 |
-
-> Not sure which variant to use? Check **System → Properties → Firmware version** on your camera. Axis OS 12+ → use the standard variant (`aarch64` or `armv7hf`). Axis OS 10.12–11.x → standard variant works too, or ROOT if you need kernel networking. Axis OS 9.x → use `armv7hf_acap3`.
->
-> The standard variant's floor was verified by live-testing the same build on Axis OS 10.12.300, 11.11.212, and 12.10.68 — it is not limited to 11.11+ as earlier releases implied. The ROOT variant was also verified on Axis OS 10.12.300 with genuine kernel networking confirmed over SSH (processes running as `root`, a real `tailscale0` kernel interface present, and `ip_forward` correctly toggling on when subnet routes are advertised) — Axis OS 10.x ran third-party apps as root by default, before the privilege sandboxing introduced later, so ROOT was never actually limited to 11.11+.
-
-You can verify your device details using the following command:
-
-```bash
-curl --anyauth "*" -u <username>:<password> <device_ip>/axis-cgi/basicdeviceinfo.cgi --data '{"apiVersion":"1.0","context":"Client defined request ID","method":"getAllProperties"}'
-```
-
-> Replace `<device_ip>`, `<username>`, and `<password>` with your device credentials.  
-> Enclose your password in quotes `' '` if it contains special characters.
-
----
+(Same for the others: just swap in `arm/Dockerfile`, `aarch64_ROOT/Dockerfile`,
+`arm_ROOT/Dockerfile`, or `arm_acap3/Dockerfile`.)
 
 ## Roadmap
 
 ### AXIS OS 13 Preparation
 
-AXIS OS 13 (scheduled for September 2026) introduces several breaking changes that affect all ACAP applications. The following items are required to maintain compatibility. See the full [AXIS OS 13 breaking changes](https://www.axis.com/for-developers/news/AXIS-OS-13-breaking-changes) announcement for details.
+AXIS OS 13 (scheduled for September 2026) introduces several breaking changes that
+affect all ACAP applications. See the full
+[AXIS OS 13 breaking changes](https://www.axis.com/for-developers/news/AXIS-OS-13-breaking-changes)
+announcement for details.
 
-- [x] **Recompile for 64-bit time (Y2038)** - AXIS OS 13 switches to a 64-bit time interface. All ACAP apps must be recompiled against the updated SDK. Cameras with incompatible apps installed will roll back the OS upgrade rather than proceed. Done for the standard `aarch64`/`armv7hf` builds (now built against ACAP Native SDK 12.10.0); the ROOT variants intentionally stay on the older SDK since Axis OS 12+ never supports root third-party apps, so they can never reach OS 13 regardless.
-- [x] **Migrate to Manifest Schema v2** - The `manifest.json` must use Manifest Schema v2, including an explicit declaration of compatible AXIS OS versions, to satisfy the new signing and compatibility requirements. Done for `aarch64`/`armv7hf` (schema 2.0.0, `compatibleOsVersions` declared); verified this does not break installability on older firmware (OS 10.12–12.10 all tested and working) before promoting it as the standard build.
-- [x] **Audit for executable stack usage** - Any ACAP compiled with an executable stack must be recompiled to comply with the new security restrictions in AXIS OS 13. Checked all compiled binaries (`param_bridge` for `aarch64`/`armv7hf`, both standard and ROOT, plus the bundled `tailscale`/`tailscaled` Go binaries) via `objdump`'s `GNU_STACK` program header — all report `flags rw-` (no executable stack) on every architecture and variant.
-- [x] **Verify web UI works over HTTPS** - AXIS OS 13 enforces HTTPS-only connections by default. The bundled web UI must be tested to confirm it functions correctly under this constraint. Verified live: the page and every endpoint it calls (`param.cgi` GET/update, the `reverseProxy` settings API GET/POST, `applications/list.cgi`, `systemlog.cgi`, the restart trigger) all work correctly over HTTPS. The UI only ever issues relative-path requests (no hardcoded `http://` fetch targets), so it inherits the page's own protocol with no mixed-content risk.
-- [ ] **Sign the ACAP via the Axis ACAP Portal** - AXIS OS 13 removes the ability to install unsigned applications in production environments. The app must be submitted and signed through the official Axis ACAP Portal to remain installable. Deferred for now — the manifest's `vendorId` is a placeholder value, not yet a portal-registered one.
+- [x] **Recompile for 64-bit time (Y2038)** - Done for the standard
+  `aarch64`/`armv7hf` builds (now built against ACAP Native SDK 12.10.0); the
+  ROOT variants intentionally stay on the older SDK since AXIS OS 12+ never
+  supports root third-party apps.
+- [x] **Migrate to Manifest Schema v2** - Done for `aarch64`/`armv7hf` (schema
+  2.0.0, `compatibleOsVersions` declared); verified installability on OS
+  10.12–12.10.
+- [x] **Audit for executable stack usage** - All compiled binaries report
+  `flags rw-` (no executable stack) on every architecture and variant.
+- [x] **Verify web UI works over HTTPS** - Verified live; the UI only issues
+  relative-path requests, so it inherits the page's protocol with no
+  mixed-content risk.
+- [ ] **Sign the ACAP via the Axis ACAP Portal** - Deferred; the manifest's
+  `vendorId` is a placeholder value, not yet portal-registered.
 
 ### General Improvements
 
-- [x] **Accept DNS from tailnet toggle** - Add an opt-in setting to the settings page that passes `--accept-dns=true` to `tailscale up`. Defaults to off to prevent Tailscale from overriding `resolv.conf` on cameras that don't need MagicDNS.
-- [x] **Accept routes toggle** - Add an opt-in setting that passes `--accept-routes=true` to `tailscale up`, allowing the camera to use subnet routes advertised by other nodes in the tailnet.
-- [ ] **Switch to tiny-tailscale binaries** - Evaluate replacing the bundled `tailscale` and `tailscaled` binaries with [tiny-tailscale](https://github.com/iamromulan/tiny-tailscale) builds. These combine both into a single binary, strip unused features, and are significantly smaller (~43% reduction), reducing install size and memory footprint across all architectures.
+- [x] **Accept DNS from tailnet toggle** - Opt-in setting passing
+  `--accept-dns=true` to `tailscale up` (defaults off).
+- [x] **Accept routes toggle** - Opt-in setting passing `--accept-routes=true`.
+- [ ] **Switch to tiny-tailscale binaries** - Evaluate replacing the bundled
+  `tailscale`/`tailscaled` with [tiny-tailscale](https://github.com/iamromulan/tiny-tailscale)
+  builds (single binary, ~43% smaller).
 
----
+## Links
 
-## Star History
+- [Tailscale](https://tailscale.com/)
+- [Tailscale GitHub](https://github.com/tailscale/tailscale)
+- [WireGuard](https://www.wireguard.com/)
+- [Axis Communications](https://www.axis.com/)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Mo3he/Axis_Cam_Tailscale&type=Date)](https://www.star-history.com/#Mo3he/Axis_Cam_Tailscale&Date)
+## License
 
----
-
-## Support
-
-If you like this project and want to support my work:  
-[Sponsor Me](https://github.com/sponsors/Mo3he)
+The packaging code in this repository is licensed under BSD 3-Clause (see
+[LICENSE](LICENSE)); this also covers the redistributed Tailscale binaries
+(upstream Tailscale is BSD 3-Clause). Bundled upstream components are listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
