@@ -4,8 +4,8 @@
         "setup": {
             "appName": "Tailscale_VPN",
             "friendlyName": "Tailscale VPN",
-            "vendor": "Mo3he",
-            "vendorId": "5741c1fb91",
+            "vendor": "moshe@mohome.net",
+            "vendorId": "70ee172dd9",
             "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
             "version": "1.98.9",
             "architecture": "armv7hf",

@@ -73,6 +73,15 @@ access for third-party applications). Learn more:
 
 ## Installation
 
+> **Signed packages:** Release `.eap` files are signed with the Axis ACAP
+> signing service and install normally on AXIS OS 12.10 and later.
+>
+> **Upgrading from an earlier version?** The signing vendor changed, so
+> installing over a previously installed unsigned build can fail with
+> **"Couldn't install: app"** (device log: *"Vendor ID in manifest does not
+> match the vendor ID of the previous version"*). To upgrade: back up your app
+> configuration, **uninstall** the old version, then install the signed one.
+
 Get the **prebuilt `.eap` file** from the
 [Releases page](https://github.com/Mo3he/Axis_Cam_Tailscale/releases).
 
@@ -215,8 +224,9 @@ announcement for details.
 - [x] **Verify web UI works over HTTPS** - Verified live; the UI only issues
   relative-path requests, so it inherits the page's protocol with no
   mixed-content risk.
-- [ ] **Sign the ACAP via the Axis ACAP Portal** - Deferred; the manifest's
-  `vendorId` is a placeholder value, not yet portal-registered.
+- [x] **Sign the ACAP via the Axis ACAP Portal** - Done; `aarch64`/`armv7hf`
+  packages are signed with the Axis ACAP signing service. The `root` and
+  `acap3` variants use manifest schema v1.x and are distributed unsigned.
 
 ### General Improvements
 

@@ -5,6 +5,17 @@ links to its full release notes on GitHub.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.98.9-Signed] - 2026-07-21 - Tailscale VPN 1.98.9 (Signed)
+
+- Packages are now signed with the Axis ACAP signing service and install
+  normally on AXIS OS 12.10 and later.
+- Vendor updated to `moshe@mohome.net` with the registered vendor ID.
+- `root` and `acap3` variants remain unsigned (manifest schema v1.x).
+- Upgrading from an earlier unsigned version can fail with "Couldn't
+  install: app" (device log: "Vendor ID in manifest does not match the
+  vendor ID of the previous version"). Back up your config, uninstall the
+  old version, then install this one.
+
 ## [1.98.8-2] - 2026-07-03 - Tailscale VPN 1.98.8-2
 
 ## [1.98.8-subnet-routing] - 2026-07-01 - Tailscale VPN 1.98.8 - Subnet Routing

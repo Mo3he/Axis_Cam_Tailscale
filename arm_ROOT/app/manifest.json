@@ -4,7 +4,7 @@
         "setup": {
             "appName": "Tailscale_VPN",
             "friendlyName": "Tailscale VPN",
-            "vendor": "Mo3he",
+            "vendor": "moshe@mohome.net",
             "embeddedSdkVersion": "3.0",
             "user": {
               "group": "root",
