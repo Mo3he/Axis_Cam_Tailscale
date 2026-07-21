@@ -7,7 +7,7 @@
             "vendor": "Mo3he",
             "vendorId": "5741c1fb91",
             "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
-            "version": "1.98.8",
+            "version": "1.98.9",
             "architecture": "armv7hf",
             "runMode": "respawn",
             "compatibleOsVersions": [
