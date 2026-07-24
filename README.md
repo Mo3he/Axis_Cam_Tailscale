@@ -46,7 +46,7 @@ lightweight WireGuard-based tunnel.
 
 - Secure remote access to cameras.
 - Easy to install via EAP package.
-- Works on **AXIS OS 10.12+** (non-root version, verified across 10.12–12.10).
+- Works on **AXIS OS 10.12+** (non-root version, verified across 10.12–13).
 - Works on **legacy AXIS OS 9.x / 10.x** via the ACAP 3 variant.
 - Based on **WireGuard VPN** technology.
 
@@ -221,7 +221,7 @@ announcement for details.
   supports root third-party apps.
 - [x] **Migrate to Manifest Schema v2** - Done for `aarch64`/`armv7hf` (schema
   2.0.0, `compatibleOsVersions` declared); verified installability on OS
-  10.12–12.10.
+  10.12–13.
 - [x] **Audit for executable stack usage** - All compiled binaries report
   `flags rw-` (no executable stack) on every architecture and variant.
 - [x] **Verify web UI works over HTTPS** - Verified live; the UI only issues
