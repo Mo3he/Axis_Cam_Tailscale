@@ -70,6 +70,15 @@ if [ -n "$module" ] && [ -n "$UPSTREAM" ] && [ -f "$gomod" ]; then
 	echo "go module ${module}@${UPSTREAM}"
 fi
 
+# Web UIs compare the installed version against the latest GitHub release. The
+# literal is marked so it cannot drift out of sync with the manifest.
+while IFS= read -r page; do
+	[ -n "$page" ] || continue
+	sed -i.bak -E "s|'[0-9]+\.[0-9]+\.[0-9]+'( /\* acap:installed-version \*/)|'${VERSION}'\1|g" "$page"
+	rm -f "$page.bak"
+	echo "installed-version $VERSION -> $page"
+done < <(grep -rl 'acap:installed-version' --include='*.html' . 2>/dev/null || true)
+
 if [ -f CHANGELOG.md ] && ! grep -qE "^## \[?${VERSION}\]?" CHANGELOG.md; then
 	first_heading=$(grep -n -m1 '^## ' CHANGELOG.md | cut -d: -f1 || true)
 	tmp=$(mktemp)
