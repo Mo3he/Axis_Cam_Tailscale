@@ -29,7 +29,10 @@ fi
 echo "==> Using container runtime: ${RUNTIME}"
 
 VERSION="${TAILSCALE_VERSION:-$(sh ci/upstream-version.sh)}"
-[ -n "$VERSION" ] || { echo 'Error: could not resolve a Tailscale version' >&2; exit 1; }
+[ -n "$VERSION" ] || {
+	echo 'Error: could not resolve a Tailscale version' >&2
+	exit 1
+}
 echo "==> Tailscale version: ${VERSION}"
 
 # --- fetch and strip upstream binaries ---------------------------------------

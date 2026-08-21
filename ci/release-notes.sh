@@ -44,14 +44,22 @@ if [ -f CHANGELOG.md ]; then
 	fi
 fi
 
-cat <<'EOF'
-### Packages
+printf '### Packages\n\n'
+printf 'Install the `signed_*.eap` matching your device architecture.\n\n'
 
-Install the `signed_*.eap` matching your device architecture. Packages ending
-`_acap3` or `_root` are published unsigned by design: ACAP 3 packages use
-manifest schema 1.x, which the Axis signing service does not accept.
-
-EOF
+# Only explain the unsigned variants when this release actually ships them.
+unsigned_note=''
+if compgen -G 'releases/*_acap3.eap' >/dev/null 2>&1; then
+	unsigned_note='`_acap3`'
+fi
+if compgen -G 'releases/*_root.eap' >/dev/null 2>&1; then
+	[ -n "$unsigned_note" ] && unsigned_note="${unsigned_note} and "
+	unsigned_note="${unsigned_note}\`_root\`"
+fi
+if [ -n "$unsigned_note" ]; then
+	printf 'Packages ending %s are published unsigned by design:\n' "$unsigned_note"
+	printf 'they use manifest schema 1.x, which the Axis signing service does not accept.\n\n'
+fi
 
 if [ -n "$PREVIOUS" ] && [ -n "${GITHUB_REPOSITORY:-}" ]; then
 	printf '**Full changelog**: https://github.com/%s/compare/%s...v%s\n' \
