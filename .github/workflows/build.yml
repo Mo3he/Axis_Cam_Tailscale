@@ -91,7 +91,10 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A ':!releases'
+          # Packages are already uploaded as an artifact; removing them here
+          # keeps build output out of the commit regardless of .gitignore.
+          rm -rf releases
+          git add -A
           if git diff --cached --quiet; then
             echo "nothing to commit"
             exit 0
