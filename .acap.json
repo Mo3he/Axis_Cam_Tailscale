@@ -1,0 +1,22 @@
+{
+  "app": "Tailscale_VPN",
+  "friendlyName": "Tailscale VPN",
+  "versionPolicy": "mirror",
+  "upstream": {
+    "type": "script",
+    "script": "ci/upstream-version.sh",
+    "name": "Tailscale",
+    "changesUrl": "https://tailscale.com/changelog"
+  },
+  "build": {
+    "command": "./build.sh",
+    "env": {}
+  },
+  "pins": [],
+  "signing": {
+    "skip": [
+      "*_acap3.eap",
+      "*_root.eap"
+    ]
+  }
+}
