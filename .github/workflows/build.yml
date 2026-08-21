@@ -39,7 +39,7 @@ jobs:
       version: ${{ steps.decide.outputs.version }}
       upstream: ${{ steps.decide.outputs.upstream }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: decide
         env:
           GH_TOKEN: ${{ github.token }}
@@ -56,7 +56,7 @@ jobs:
       VERSION: ${{ needs.check.outputs.version }}
       UPSTREAM_VERSION: ${{ needs.check.outputs.upstream }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Apply version and upstream pins
         run: ./ci/apply-version.sh "$VERSION" "$UPSTREAM_VERSION"
@@ -78,7 +78,7 @@ jobs:
             tar tzf "$package" >/dev/null
           done
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: packages
           path: releases/*.eap
@@ -119,12 +119,12 @@ jobs:
       VERSION: ${{ needs.check.outputs.version }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: packages
           path: releases
