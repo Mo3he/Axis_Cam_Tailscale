@@ -5,6 +5,12 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # One PR per repo instead of one per action; the workflow is generated from
+    # Axis_Cam_Template/ci/build.yml.tmpl, so apply bumps there and re-sync.
+    groups:
+      github-actions:
+        patterns:
+          - "*"
     commit-message:
       prefix: ci
     labels:
