@@ -7,7 +7,7 @@
             "vendor": "moshe@mohome.net",
             "vendorId": "70ee172dd9",
             "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
-            "version": "1.102.2",
+            "version": "1.102.3",
             "architecture": "aarch64",
             "runMode": "respawn",
             "compatibleOsVersions": [
