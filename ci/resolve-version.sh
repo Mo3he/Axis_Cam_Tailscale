@@ -89,6 +89,11 @@ bump_patch() {
 	printf '%s.%s.%s\n' "${major:-0}" "${minor:-0}" "$((${patch:-0} + 1))"
 }
 
+# True when $1 is a strictly higher version than $2.
+version_gt() {
+	[ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" = "$1" ]
+}
+
 CURRENT=$(current_version)
 UPSTREAM=$(upstream_version || true)
 
@@ -102,9 +107,18 @@ if [ -n "$INPUT_VERSION" ]; then
 	RELEASE=true
 elif [ "$POLICY" = mirror ]; then
 	if [ -n "$UPSTREAM" ] && [ "$UPSTREAM" != "$CURRENT" ]; then
-		TARGET="$UPSTREAM"
-		BUILD=true
-		RELEASE=true
+		if version_gt "$UPSTREAM" "$CURRENT"; then
+			# Upstream is ahead: adopt its version.
+			TARGET="$UPSTREAM"
+			BUILD=true
+			RELEASE=true
+		elif [ "$UPSTREAM" != "$(pin_value)" ]; then
+			# Our line already ran past upstream, so keep moving forward on it
+			# rather than emitting a lower version that clashes with old tags.
+			TARGET=$(bump_patch "$CURRENT")
+			BUILD=true
+			RELEASE=true
+		fi
 	fi
 elif [ "$POLICY" = patch ]; then
 	if [ -n "$UPSTREAM" ] && [ "$UPSTREAM" != "$(pin_value)" ]; then
