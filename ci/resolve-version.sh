@@ -139,6 +139,19 @@ if [ "$INPUT_FORCE" = true ]; then
 	RELEASE=true
 fi
 
+# Never aim at a version that is already published. Stepping forward here means
+# a long build is not wasted only to be rejected by the release job. An explicit
+# version input is respected as given.
+if [ "$RELEASE" = true ] && [ -z "$INPUT_VERSION" ] && command -v gh >/dev/null 2>&1; then
+	attempts=0
+	while [ "$attempts" -lt 20 ] &&
+		gh release view "v$TARGET" --json isDraft --jq '.isDraft' 2>/dev/null | grep -qx false; do
+		echo "v$TARGET is already published; stepping forward"
+		TARGET=$(bump_patch "$TARGET")
+		attempts=$((attempts + 1))
+	done
+fi
+
 cat <<EOF
 policy   : $POLICY
 current  : $CURRENT
