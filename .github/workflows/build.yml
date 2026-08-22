@@ -84,6 +84,14 @@ jobs:
           path: releases/*.eap
           if-no-files-found: error
 
+      # Unstripped binaries for symbolising a crash from a shipped (stripped)
+      # package. Not a release asset: they are only useful while debugging.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: debug-symbols
+          path: debug/
+          if-no-files-found: ignore
+
       # Only after a successful build, so a failed upstream jump leaves main clean.
       - name: Commit version bump
         if: needs.check.outputs.release == 'true' && github.event_name != 'pull_request'

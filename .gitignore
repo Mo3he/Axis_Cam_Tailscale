@@ -6,6 +6,9 @@ releases/
 build/
 *.eap
 
+# Unstripped binaries kept for crash symbolisation, uploaded as a CI artifact
+debug/
+
 # Do not track downloaded Tailscale tarballs and temp bins
 tailscale_bins/
 *.tgz

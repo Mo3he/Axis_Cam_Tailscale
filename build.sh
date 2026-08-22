@@ -39,6 +39,7 @@ echo "==> Tailscale version: ${VERSION}"
 
 BINS="${REPO_ROOT}/tailscale_bins"
 rm -rf "$BINS"
+rm -rf "${REPO_ROOT}/debug"
 mkdir -p "$BINS"
 
 fetch_arch() {
@@ -56,17 +57,34 @@ fetch_arch() {
 fetch_arch arm arm
 fetch_arch arm64 arm64
 
-# Stripping is optional: it only shrinks the package, so a missing cross
-# binutils on a dev machine must not fail the build.
-strip_with() {
-	tool=$1
+# Tailscale is the only upstream here that ships binaries with symbols, so the
+# strip is worth ~23 MB per package. It runs inside the SDK container: relying
+# on host cross-binutils meant a machine without them silently produced an
+# unstripped package under the same version number.
+SDK_IMAGE=axisecp/acap-native-sdk:12.10.0
+SDK_UBUNTU=ubuntu24.04
+
+strip_arch() {
+	sdk_arch=$1
 	suffix=$2
-	command -v "$tool" >/dev/null 2>&1 || return 0
-	"$tool" -s "${BINS}/tailscale_${suffix}" || true
-	"$tool" -s "${BINS}/tailscaled_${suffix}" || true
+	echo "==> Stripping ${suffix} binaries"
+	# Unstripped copies for symbolising crash dumps; never shipped.
+	mkdir -p "${REPO_ROOT}/debug"
+	cp "${BINS}/tailscale_${suffix}" "${REPO_ROOT}/debug/tailscale-${suffix}.unstripped"
+	cp "${BINS}/tailscaled_${suffix}" "${REPO_ROOT}/debug/tailscaled-${suffix}.unstripped"
+	# SC2016: $STRIP must expand inside the container, not on the host.
+	# shellcheck disable=SC2016
+	cid=$("$RUNTIME" create "${SDK_IMAGE}-${sdk_arch}-${SDK_UBUNTU}" sh -c \
+		'. /opt/axis/acapsdk/environment-setup* >/dev/null 2>&1 && "${STRIP:?SDK environment did not set STRIP}" /tmp/tailscale /tmp/tailscaled')
+	"$RUNTIME" cp "${BINS}/tailscale_${suffix}" "${cid}:/tmp/tailscale"
+	"$RUNTIME" cp "${BINS}/tailscaled_${suffix}" "${cid}:/tmp/tailscaled"
+	"$RUNTIME" start -a "$cid"
+	"$RUNTIME" cp "${cid}:/tmp/tailscale" "${BINS}/tailscale_${suffix}"
+	"$RUNTIME" cp "${cid}:/tmp/tailscaled" "${BINS}/tailscaled_${suffix}"
+	"$RUNTIME" rm "$cid" >/dev/null
 }
-strip_with aarch64-linux-gnu-strip arm64
-strip_with arm-linux-gnueabihf-strip arm
+strip_arch aarch64 arm64
+strip_arch armv7hf arm
 
 # --- build variants -----------------------------------------------------------
 
