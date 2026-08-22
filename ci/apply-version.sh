@@ -43,10 +43,19 @@ for ((i = 0; i < pin_count; i++)); do
 	arg=$(cfg ".pins[$i].arg")
 	prefix=$(cfg ".pins[$i].prefix // empty")
 	sha_url=$(cfg ".pins[$i].sha256Url // empty")
+	gomodule=$(cfg ".pins[$i].goModule // empty")
 	[ -f "$file" ] || {
 		echo "pin target missing: $file" >&2
 		continue
 	}
+
+	# A go.mod pin has no ARG to substitute, and go refuses a bare "0.77.1", so
+	# the declared prefix has to be applied here.
+	if [ -n "$gomodule" ]; then
+		(cd "$(dirname "$file")" && go get "${gomodule}@${prefix}${UPSTREAM:-$VERSION}" && go mod tidy)
+		echo "go module ${gomodule}@${prefix}${UPSTREAM:-$VERSION} -> $file"
+		continue
+	fi
 
 	if [ -n "$sha_url" ]; then
 		# Checksum pins track the version pin, so the tarball is fetched and
