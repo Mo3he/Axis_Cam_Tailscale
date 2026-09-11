@@ -5,6 +5,10 @@ links to its full release notes on GitHub.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## 1.102.4 - 2026-09-11
+
+- Update to upstream 1.102.4.
+
 ## [1.98.9-Signed] - 2026-07-21 - Tailscale VPN 1.98.9 (Signed)
 
 - Packages are now signed with the Axis ACAP signing service and install

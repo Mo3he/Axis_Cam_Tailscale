@@ -1,67 +1,67 @@
 {
-    "schemaVersion": "2.0.0",
-    "acapPackageConf": {
-        "setup": {
-            "appName": "Tailscale_VPN",
-            "friendlyName": "Tailscale VPN",
-            "vendor": "moshe@mohome.net",
-            "vendorId": "70ee172dd9",
-            "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
-            "version": "1.102.3",
-            "architecture": "aarch64",
-            "runMode": "respawn",
-            "compatibleOsVersions": [
-                {
-                    "max": "13"
-                }
-            ]
-        },
-        "configuration": {
-            "settingPage": "index.html",
-            "reverseProxy": [
-                {
-                    "apiPath": "api",
-                    "target": "http://localhost:2201/",
-                    "access": "admin"
-                }
-            ],
-            "paramConfig": [
-                {
-                    "name": "CustomServer",
-                    "default": "",
-                    "type": "string"
-                },
-                {
-                    "name": "AuthKey",
-                    "default": "",
-                    "type": "string"
-                },
-                {
-                    "name": "HttpProxyPort",
-                    "default": "8080",
-                    "type": "string"
-                },
-                {
-                    "name": "Socks5Port",
-                    "default": "1080",
-                    "type": "string"
-                },
-                {
-                    "name": "AcceptDNS",
-                    "default": "false",
-                    "type": "string"
-                },
-                {
-                    "name": "AcceptRoutes",
-                    "default": "false",
-                    "type": "string"
-                },
-                {
-                    "name": "AdvertiseRoutes",
-                    "default": "",
-                    "type": "string"
-                }
-            ]
+  "schemaVersion": "2.0.0",
+  "acapPackageConf": {
+    "setup": {
+      "appName": "Tailscale_VPN",
+      "friendlyName": "Tailscale VPN",
+      "vendor": "moshe@mohome.net",
+      "vendorId": "70ee172dd9",
+      "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
+      "version": "1.102.4",
+      "architecture": "aarch64",
+      "runMode": "respawn",
+      "compatibleOsVersions": [
+        {
+          "max": "13"
         }
+      ]
+    },
+    "configuration": {
+      "settingPage": "index.html",
+      "reverseProxy": [
+        {
+          "apiPath": "api",
+          "target": "http://localhost:2201/",
+          "access": "admin"
+        }
+      ],
+      "paramConfig": [
+        {
+          "name": "CustomServer",
+          "default": "",
+          "type": "string"
+        },
+        {
+          "name": "AuthKey",
+          "default": "",
+          "type": "string"
+        },
+        {
+          "name": "HttpProxyPort",
+          "default": "8080",
+          "type": "string"
+        },
+        {
+          "name": "Socks5Port",
+          "default": "1080",
+          "type": "string"
+        },
+        {
+          "name": "AcceptDNS",
+          "default": "false",
+          "type": "string"
+        },
+        {
+          "name": "AcceptRoutes",
+          "default": "false",
+          "type": "string"
+        },
+        {
+          "name": "AdvertiseRoutes",
+          "default": "",
+          "type": "string"
+        }
+      ]
     }
+  }
 }

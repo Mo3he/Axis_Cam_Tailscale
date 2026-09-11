@@ -1,56 +1,56 @@
 {
-    "schemaVersion": "1.7.0",
-    "acapPackageConf": {
-        "setup": {
-            "appName": "Tailscale_VPN",
-            "friendlyName": "Tailscale VPN",
-            "vendor": "Mo3he",
-            "embeddedSdkVersion": "3.0",
-            "user": {
-              "group": "root",
-              "username": "root"
-          },
-            "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
-            "runMode": "respawn",
-            "version": "1.102.3",
-            "architecture": "armv7hf"
-        },
-        "configuration": {
-            "settingPage": "index.html",
-            "reverseProxy": [
-                {
-                    "apiPath": "api",
-                    "target": "http://localhost:2201/",
-                    "access": "admin"
-                }
-            ],
-            "paramConfig": [
-                {
-                    "name": "CustomServer",
-                    "default": "",
-                    "type": "string"
-                },
-                {
-                    "name": "AuthKey",
-                    "default": "",
-                    "type": "string"
-                },
-                {
-                    "name": "AcceptDNS",
-                    "default": "false",
-                    "type": "string"
-                },
-                {
-                    "name": "AcceptRoutes",
-                    "default": "false",
-                    "type": "string"
-                },
-                {
-                    "name": "AdvertiseRoutes",
-                    "default": "",
-                    "type": "string"
-                }
-            ]
+  "schemaVersion": "1.7.0",
+  "acapPackageConf": {
+    "setup": {
+      "appName": "Tailscale_VPN",
+      "friendlyName": "Tailscale VPN",
+      "vendor": "Mo3he",
+      "embeddedSdkVersion": "3.0",
+      "user": {
+        "group": "root",
+        "username": "root"
+      },
+      "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
+      "runMode": "respawn",
+      "version": "1.102.4",
+      "architecture": "armv7hf"
+    },
+    "configuration": {
+      "settingPage": "index.html",
+      "reverseProxy": [
+        {
+          "apiPath": "api",
+          "target": "http://localhost:2201/",
+          "access": "admin"
         }
+      ],
+      "paramConfig": [
+        {
+          "name": "CustomServer",
+          "default": "",
+          "type": "string"
+        },
+        {
+          "name": "AuthKey",
+          "default": "",
+          "type": "string"
+        },
+        {
+          "name": "AcceptDNS",
+          "default": "false",
+          "type": "string"
+        },
+        {
+          "name": "AcceptRoutes",
+          "default": "false",
+          "type": "string"
+        },
+        {
+          "name": "AdvertiseRoutes",
+          "default": "",
+          "type": "string"
+        }
+      ]
     }
+  }
 }
