@@ -61,6 +61,18 @@ jobs:
       - name: Apply version and upstream pins
         run: ./ci/apply-version.sh "$VERSION" "$UPSTREAM_VERSION"
 
+      # Repos without a tests/run.sh simply skip this.
+      - name: Run unit tests
+        run: |
+          set -euo pipefail
+          if [ -x tests/run.sh ] || [ -f tests/run.sh ]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends pkg-config libglib2.0-dev
+            sh tests/run.sh
+          else
+            echo "no tests/run.sh, skipping"
+          fi
+
       - name: Build packages
         run: ./ci/build-packages.sh
 
