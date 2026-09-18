@@ -16,9 +16,10 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Keep routine Go transitive dependency maintenance together.",
+      "description": "Transitive Go modules are off by default; enable so CVE fixes can land.",
       "matchManagers": ["gomod"],
       "matchDepTypes": ["indirect"],
+      "enabled": true,
       "groupName": "Go indirect dependencies",
       "groupSlug": "go-indirect-dependencies"
     }
