@@ -10,6 +10,12 @@
   "schedule": ["before 5am on Monday"],
   "packageRules": [
     {
+      "description": "An SDK bump raises the package's minimum AXIS OS, so decide it deliberately.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["axisecp/acap-native-sdk", "axisecp/acap-sdk"],
+      "dependencyDashboardApproval": true
+    },
+    {
       "description": "Keep routine Go transitive dependency maintenance together.",
       "matchManagers": ["gomod"],
       "matchDepTypes": ["indirect"],
