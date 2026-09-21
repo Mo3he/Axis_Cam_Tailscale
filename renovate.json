@@ -9,7 +9,12 @@
     {
       "description": "An SDK bump raises the package's minimum AXIS OS, so decide it deliberately.",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["axisecp/acap-native-sdk", "axisecp/acap-sdk"],
+      "matchPackageNames": [
+        "axisecp/acap-native-sdk",
+        "axisecp/acap-sdk",
+        "docker.io/axisecp/acap-native-sdk",
+        "docker.io/axisecp/acap-sdk"
+      ],
       "dependencyDashboardApproval": true
     },
     {
