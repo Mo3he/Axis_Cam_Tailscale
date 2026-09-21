@@ -2,9 +2,6 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "dependencyDashboard": true,
-  "ignorePaths": [
-    ".github/workflows/build.yml"
-  ],
   "prConcurrentLimit": 3,
   "prHourlyLimit": 0,
   "schedule": ["before 5am on Monday"],
