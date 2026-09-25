@@ -300,14 +300,12 @@
     </button>
 </div>
 
-<!-- Status -->
 <div id="status-banner" class="status-banner connecting">
     <span class="dot"></span>
     <span id="status-text" class="status-text">Checking...</span>
     <span id="status-time" class="status-time"></span>
 </div>
 
-<!-- Update available -->
 <div id="update-banner" class="update-banner">
     <div class="update-text">Update available: <strong id="update-version"></strong></div>
     <a id="update-link" class="update-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
@@ -316,7 +314,6 @@
     </a>
 </div>
 
-<!-- Auth (hidden by default) -->
 <div id="auth-block" class="auth-block" style="display:none;">
     <p>Authenticate this device to connect to your Tailscale network:</p>
     <a id="auth-link" class="auth-btn" href="#" target="_blank">
@@ -326,7 +323,6 @@
     <span id="auth-url-text" class="auth-url"></span>
 </div>
 
-<!-- Connection Info -->
 <div class="card" id="info-card" style="display:none;">
     <div class="card-title">Connection Details</div>
     <div class="info-grid">
@@ -352,7 +348,6 @@
     </div>
 </div>
 
-<!-- Logs -->
 <div class="card">
     <div class="log-controls">
         <div class="card-title" style="margin-bottom:0;">Service Log</div>
@@ -436,11 +431,11 @@
             tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
         }
 
-        // Primary: extract hostname from Axis syslog header (always the real device hostname)
+        // The syslog header always carries the real device hostname.
         var node = null;
         var hostLine = txt.match(/\d{4}-\d{2}-\d{2}T[\d:.]+[+-]\d{2}:\d{2}\s+(\S+)\s+\[/);
         if (hostLine) node = hostLine[1];
-        // Fallback: popBrowserAuthNow/StartLoginInteractiveAs (may contain stale acap-tailscale_vpn)
+        // Fallback; may contain a stale acap-tailscale_vpn name.
         if (!node) {
             var nodeMatches = txt.match(/popBrowserAuthNow\("([^"]+)"\)/g);
             if (!nodeMatches) nodeMatches = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/g);
@@ -493,7 +488,6 @@
             if (acap3ip) tsIP = acap3ip[1];
         }
 
-        // Cache when found, restore from cache when missing
         cacheSet('ip', tsIP); cacheSet('node', node); cacheSet('tailnet', tailnet); cacheSet('version', version);
         tsIP = tsIP || cacheGet('ip');
         node = node || cacheGet('node');
@@ -609,10 +603,8 @@
             .catch(function() { return false; });
     }
 
-    // ACAP3: also fetch the raw tailscaled.log (symlinked into html/) so the parser
-    // can find IP, version, tailnet and Running state from tailscaled's own output.
+    // ACAP3: tailscaled's own log has the IP, version, tailnet and Running state.
     var DAEMON_LOG_URL = 'tailscaled.log';
-    // Authoritative backend state published by start.sh (symlinked into html/).
     var STATUS_URL = 'status.json';
 
     // Ground truth published by start.sh from `tailscale status --json`.
@@ -633,7 +625,6 @@
         if (st.Version) result.version = String(st.Version).split('-')[0];
 
         if (bs === 'Running' && self.Online === true) {
-            // Genuinely connected and reachable on the tailnet
             result.state = 'connected';
             result.url = null;
             result.ip = ip4 || result.ip;
@@ -645,9 +636,8 @@
             result.state = 'connecting';
             result.url = st.AuthURL || result.url;
         } else if (bs === 'Running') {
-            // Backend running but node not online: transient network drop or the
-            // node was removed/expired and needs re-auth. Not connected. Keep any
-            // login URL the log parser found so the login button still appears.
+            // Not online: transient drop or node removed/expired. Keep the log
+            // parser's URL so the login button still appears.
             result.state = 'connecting';
             result.url = st.AuthURL || result.url;
         } else if (bs === 'Stopped') {
@@ -672,8 +662,8 @@
             var txt = res[0] + '\n' + res[1];
             var st = res[2];
             var result = parse(txt);
-            renderLogs(res[0]);  // show syslog in log panel; daemon log is too verbose
-            // Always verify with the app status API - logs can have stale entries
+            renderLogs(res[0]);  // daemon log is too verbose to show
+            // Logs can have stale entries; confirm the app is running.
             checkAppRunning().then(function(running) {
                     if (!running) {
                         result.state = 'disconnected';

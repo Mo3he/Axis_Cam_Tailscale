@@ -1,22 +1,10 @@
 // Copyright (C) 2024  Mo3he
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-/**
- * ACAP parameter bridge for Tailscale VPN.
- *
- * Responsibilities:
- *  1. Read Tailscale parameters from the ACAP parameter store (axparameter).
- *  2. Write them to CONFIG_FILE so the shell script can source them.
- *  3. Launch the shell script (Tailscale_VPN_run) as a child process.
- *  4. On any parameter change: rewrite CONFIG_FILE and do a full stop+restart
- *     of the child so the new config is picked up.
- *     Rapid changes within 300 ms are coalesced into a single restart.
- *  5. Watchdog: if the child exits unexpectedly, restart it.
- *
- * Shared across the userspace-networking variants (unprivileged 'sdk' ACAP
- * user) and the ROOT / kernel-networking variant. Build with -DHAS_PROXY_PORTS
- * for the userspace variants, which exposes the HTTP/SOCKS5 proxy port
- * parameters; the ROOT variant omits them since it has no local proxy.
+/*
+ * ACAP parameter bridge for Tailscale VPN: mirrors axparameter values into
+ * CONFIG_FILE, runs Tailscale_VPN_run as a child and restarts it on changes.
+ * Build with -DHAS_PROXY_PORTS for the userspace variants; ROOT has no proxy.
  */
 
 #include <axsdk/axparameter.h>
@@ -70,10 +58,8 @@ static const char *cache_get(char **field, const char *fallback) {
     return (*field && **field) ? *field : fallback;
 }
 
-/* Ensure a parameter exists in the device parameter database. On in-place ACAP
- * upgrades a newly introduced manifest parameter is not always auto-registered,
- * which makes param.cgi return a 404 when the web UI tries to set it. Creating
- * it here is idempotent: if it already exists, ax_parameter_add fails harmlessly. */
+/* In-place upgrades don't always register new manifest params (param.cgi then
+ * 404s); ax_parameter_add fails harmlessly if the param already exists. */
 static void ensure_param(AXParameter *handle, const char *name, const char *def) {
     GError *err = NULL;
     if (!ax_parameter_add(handle, name, def, "string", &err)) {
@@ -127,7 +113,7 @@ static gboolean watchdog_cb(gpointer G_GNUC_UNUSED data) {
             int exit_code = WEXITSTATUS(status);
             syslog(LOG_WARNING, "child exited (status %d), restarting", exit_code);
             child_pid = -1;
-            /* If child exited 0, auth succeeded — clear AuthKey via axparameter */
+            /* Legacy AuthKey clear: the run script only exits 0 from its TERM/INT trap. */
             if (exit_code == 0 && g_ax_handle && cfg_auth_key && *cfg_auth_key) {
                 GError *err = NULL;
                 if (ax_parameter_set(g_ax_handle, "AuthKey", "", TRUE, &err)) {
@@ -147,10 +133,8 @@ static gboolean watchdog_cb(gpointer G_GNUC_UNUSED data) {
 
 /* ── auth-key sentinel ───────────────────────────────────────────────────── */
 
-/* The run script drops SENTINEL_FILE after a successful `tailscale up` that
- * used a one-time auth key. Clear the stored AuthKey so it is not reused and
- * disappears from the settings UI. This replaces the old exit-code-0 path,
- * which never fired because tailscaled keeps the child alive indefinitely. */
+/* The run script drops SENTINEL_FILE after `tailscale up` used the auth key.
+ * The exit-code-0 path in watchdog_cb rarely fires since the child stays up. */
 static gboolean authkey_sentinel_cb(gpointer G_GNUC_UNUSED data) {
     if (access(SENTINEL_FILE, F_OK) != 0)
         return G_SOURCE_CONTINUE;
@@ -277,11 +261,8 @@ static void parameter_changed(const gchar *name, const gchar *value,
 }
 
 /* ── embedded settings HTTP server (reverse-proxy fallback) ──────────────────
- * Some AXIS device classes (e.g. recorders/NVRs) do not expose the legacy
- * /axis-cgi/param.cgi VAPIX endpoint, so the web UI cannot load or save
- * settings through it. This tiny HTTP server, reached through the manifest
- * reverseProxy mapping at /local/Tailscale_VPN/api/settings, lets the web UI
- * fall back to reading and writing the parameters directly. */
+ * For devices without /axis-cgi/param.cgi (e.g. recorders); reached via the
+ * manifest reverseProxy at /local/Tailscale_VPN/api/settings. */
 
 #define HTTP_PORT 2201
 
@@ -344,9 +325,8 @@ static gchar *http_build_settings_json(AXParameter *handle) {
         g_free(val);
     }
     g_string_append_c(out, '}');
-    /* g_string_free(out, FALSE) is inlined by glib >= 2.76 headers into a call
-     * to g_string_free_and_steal(), which doesn't exist in older glib runtimes
-     * (e.g. AXIS OS 11.x). Copy out and fully free instead to stay portable. */
+    /* Not g_string_free(out, FALSE): glib >= 2.76 headers turn it into
+     * g_string_free_and_steal(), missing from older runtimes (AXIS OS 11.x). */
     gchar *json_result = g_strdup(out->str);
     g_string_free(out, TRUE);
     return json_result;
@@ -544,11 +524,9 @@ int main(void) {
     openlog(APP_NAME, LOG_PID, LOG_USER);
     syslog(LOG_INFO, "starting");
 
-    /* Ensure localdata dir exists */
     mkdir("/usr/local/packages/Tailscale_VPN/localdata", 0755);
 
-    /* Drop any stale auth-key sentinel from a previous run so we don't clear a
-     * freshly configured key before it has been used. */
+    /* A stale sentinel would clear a freshly configured key before use. */
     unlink(SENTINEL_FILE);
 
     AXParameter *handle = ax_parameter_new(APP_NAME, &error);

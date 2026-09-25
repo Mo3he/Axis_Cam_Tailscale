@@ -6,7 +6,6 @@ ARG SDK=acap-native-sdk
 
 FROM ${REPO}/${SDK}:${VERSION}-${ARCH}-ubuntu${UBUNTU_VERSION}
 
-# Building the ACAP application
 COPY common/app /opt/app/
 COPY arm_ROOT/app/manifest.json /opt/app/manifest.json
 WORKDIR /opt/app

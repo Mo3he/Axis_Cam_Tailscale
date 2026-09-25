@@ -351,14 +351,12 @@
     </button>
 </div>
 
-<!-- Status -->
 <div id="status-banner" class="status-banner connecting">
     <span class="dot"></span>
     <span id="status-text" class="status-text">Checking...</span>
     <span id="status-time" class="status-time"></span>
 </div>
 
-<!-- Update available -->
 <div id="update-banner" class="update-banner">
     <div class="update-text">Update available: <strong id="update-version"></strong></div>
     <a id="update-link" class="update-btn" href="https://github.com/Mo3he/Axis_Cam_Tailscale/releases/latest" target="_blank" rel="noopener">
@@ -367,7 +365,6 @@
     </a>
 </div>
 
-<!-- Auth (hidden by default) -->
 <div id="auth-block" class="auth-block" style="display:none;">
     <p>Authenticate this device to connect to your Tailscale network:</p>
     <a id="auth-link" class="auth-btn" href="#" target="_blank">
@@ -377,7 +374,6 @@
     <span id="auth-url-text" class="auth-url"></span>
 </div>
 
-<!-- Connection Info -->
 <div class="card" id="info-card" style="display:none;">
     <div class="card-title">Connection Details</div>
     <div class="info-grid">
@@ -403,7 +399,7 @@
     </div>
 </div>
 
-<!-- Proxy Info (hidden on ROOT builds, which have no local proxy) -->
+<!-- Hidden on ROOT builds, which have no local proxy -->
 <div class="card" id="proxy-info-card" style="display:none;">
     <div class="card-title">Proxy Configuration</div>
     <div class="info-grid">
@@ -418,7 +414,6 @@
     </div>
 </div>
 
-<!-- Settings -->
 <div class="card">
     <div class="card-title">Settings</div>
     <div class="settings-form">
@@ -474,7 +469,6 @@
     </div>
 </div>
 
-<!-- Logs -->
 <div class="card">
     <div class="log-controls">
         <div class="card-title" style="margin-bottom:0;">Service Log</div>
@@ -559,11 +553,11 @@
             tsIP = allIPs.length ? allIPs[allIPs.length - 1] : null;
         }
 
-        // Primary: extract hostname from Axis syslog header (always the real device hostname)
+        // The syslog header always carries the real device hostname.
         var node = null;
         var hostLine = txt.match(/\d{4}-\d{2}-\d{2}T[\d:.]+[+-]\d{2}:\d{2}\s+(\S+)\s+\[/);
         if (hostLine) node = hostLine[1];
-        // Fallback: popBrowserAuthNow/StartLoginInteractiveAs (may contain stale acap-tailscale_vpn)
+        // Fallback; may contain a stale acap-tailscale_vpn name.
         if (!node) {
             var nodeMatches = txt.match(/popBrowserAuthNow\("([^"]+)"\)/g);
             if (!nodeMatches) nodeMatches = txt.match(/StartLoginInteractiveAs\("([^"]+)"\)/g);
@@ -605,7 +599,7 @@
             }
         }
 
-        // Parse proxy ports from log — use last match so old entries don't win
+        // Use the last match so older log entries don't win.
         var httpPort = null;
         var httpProxyMatches = txt.match(/HTTP\/HTTPS proxy: http:\/\/127\.0\.0\.1:(\d+)/g);
         if (httpProxyMatches) { var m = httpProxyMatches[httpProxyMatches.length - 1].match(/:(\d+)$/); if (m) httpPort = m[1]; }
@@ -613,7 +607,6 @@
         var socksProxyMatches = txt.match(/SOCKS5 proxy:\s+127\.0\.0\.1:(\d+)/g);
         if (socksProxyMatches) { var ms = socksProxyMatches[socksProxyMatches.length - 1].match(/:(\d+)$/); if (ms) socksPort = ms[1]; }
 
-        // Cache when found, restore from cache when missing
         cacheSet('ip', tsIP); cacheSet('node', node); cacheSet('tailnet', tailnet); cacheSet('version', version);
         cacheSet('http-port', httpPort); cacheSet('socks-port', socksPort);
         tsIP = tsIP || cacheGet('ip');
@@ -627,9 +620,8 @@
         var lastState = stateLines.length ? stateLines[stateLines.length - 1] : '';
         var isRunning = /-> Running/.test(lastState);
 
-        // Fallbacks only when syslog has rotated and no state transitions are visible.
-        // If we CAN see state lines (e.g. "-> NeedsLogin"), trust them over our own
-        // "Tailscale VPN is running" message which stays in syslog indefinitely.
+        // Only when syslog rotated away all state lines: our own "Tailscale VPN
+        // is running" line lingers in syslog and must not override them.
         if (!isRunning && stateLines.length === 0) {
             isRunning = /Tailscale VPN is running/.test(txt) ||
                         /health\(warnable=[^)]+\): ok/.test(txt) ||
@@ -638,12 +630,11 @@
                         /localapi:/.test(txt);
         }
 
-        // If an auth URL appears AFTER the last Running state, re-auth is needed
-        // (handles stale Running entries in syslog after reinstall or token expiry)
+        // An auth URL after the last Running state means re-auth is needed
+        // (stale Running entries after reinstall or token expiry).
         if (isRunning && latestUrl) {
-            // Use the LATEST of '-> Running' (tailscaled state) or 'Tailscale VPN is running'
-            // (our shell log). The shell log is written AFTER auth completes, so it correctly
-            // post-dates the auth URL when connection succeeds.
+            // Our shell log line is written after auth completes, so it post-dates
+            // the auth URL on success.
             var lastRunIdx = txt.lastIndexOf('-> Running');
             var lastRunningMsgIdx = txt.lastIndexOf('Tailscale VPN is running');
             if (lastRunningMsgIdx > lastRunIdx) lastRunIdx = lastRunningMsgIdx;
@@ -707,7 +698,6 @@
             auth.style.display = 'none';
         }
 
-        // Proxy card is always visible — update ports whenever known
         if (r.httpPort) document.getElementById('ts-http-proxy').textContent = 'http://127.0.0.1:' + r.httpPort;
         if (r.socksPort) document.getElementById('ts-socks-proxy').textContent = '127.0.0.1:' + r.socksPort;
 
@@ -761,7 +751,6 @@
         if (st.Version) result.version = String(st.Version).split('-')[0];
 
         if (bs === 'Running' && self.Online === true) {
-            // Genuinely connected and reachable on the tailnet
             result.state = 'connected';
             result.url = null;
             result.ip = ip4 || result.ip;
@@ -773,11 +762,8 @@
             result.state = 'connecting';
             result.url = st.AuthURL || result.url;
         } else if (bs === 'Running') {
-            // Backend running but node not online: either a transient network
-            // drop (no action needed) or the node was removed/expired and needs
-            // re-auth. Not connected. Keep any login URL the log parser found
-            // (status.json's AuthURL lags during the `tailscale up` re-auth
-            // window) so the login button still appears when re-auth is needed.
+            // Not online: transient drop or node removed/expired. Keep the log
+            // parser's URL; status.json's AuthURL lags during re-auth.
             result.state = 'connecting';
             result.url = st.AuthURL || result.url;
         } else if (bs === 'Stopped') {
@@ -801,7 +787,7 @@
             var st = arr[1];
             var result = parse(txt || '');
             if (txt) renderLogs(txt);
-            // Verify the app is actually running - status.json can be stale if stopped
+            // status.json goes stale when the app is stopped.
             checkAppRunning().then(function(running) {
                 if (!running) {
                     result.state = 'disconnected';
@@ -869,7 +855,7 @@
         return 0;
     }
 
-    // Settings — load current param values and save on submit
+    // Settings
     var PARAM_URL = '/axis-cgi/param.cgi';
     var serverInput   = document.getElementById('input-server');
     var authInput     = document.getElementById('input-authkey');
@@ -881,17 +867,11 @@
     var saveBtn       = document.getElementById('save-btn');
     var saveStatus  = document.getElementById('save-status');
 
-    // param.cgi is used when available; on devices that lack it (e.g. some
-    // recorder/NVR-class devices) we fall back to the app's own endpoint,
-    // exposed through the manifest reverseProxy mapping at API_URL.
+    // Fallback for devices without param.cgi (e.g. recorders).
     var API_URL = '/local/' + APP + '/api/settings';
 
-    // Whether this build exposes local HTTP/SOCKS5 proxies (absent on ROOT
-    // builds, which use kernel networking directly). Detected from whichever
-    // settings response actually comes back — set once and used to hide the
-    // proxy card/fields and to keep them out of the save request, since
-    // param.cgi errors the whole call's status line if asked to set a
-    // parameter name the manifest never registered.
+    // False on ROOT builds (no local proxy). Also keeps the ports out of saves:
+    // param.cgi fails the whole update on a name the manifest never registered.
     var hasProxyPorts = false;
 
     function toggleProxyUi(visible) {
@@ -915,8 +895,7 @@
         var dm = txt.match(/root\.\S+\.AcceptDNS=(.*)/);
         var rm = txt.match(/root\.\S+\.AcceptRoutes=(.*)/);
         var avm = txt.match(/root\.\S+\.AdvertiseRoutes=(.*)/);
-        // If none of the expected keys are present the endpoint isn't param.cgi
-        // (e.g. a generic 404 page); signal the caller to use the fallback.
+        // No expected keys means this isn't param.cgi output (e.g. a 404 page).
         if (!sm && !hm && !km) return false;
         if (sm) serverInput.value    = sm[1].trim();
         if (am) authInput.value      = am[1].trim();
@@ -979,8 +958,7 @@
         .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
         .then(function(txt) {
             if (/OK/.test(txt)) {
-                // The app applies the change and restarts its tunnel itself,
-                // so no separate control.cgi restart is needed here.
+                // The app restarts its tunnel itself; no control.cgi call needed.
                 setStatus('Saved. Restarting...', 'ok');
             } else {
                 setStatus('Error saving settings', 'err');
@@ -1011,15 +989,13 @@
         .then(function(txt) {
             if (/^OK/.test(txt.trim())) {
                 setStatus('Saved. Restarting...', 'ok');
-                // Restart the app so new settings take effect
                 return fetch('/axis-cgi/applications/control.cgi?action=restart&package=' + APP,
                     { method: 'POST', credentials: 'same-origin' });
             }
-            // param.cgi reachable but rejected the update — surface the error.
             setStatus('Error: ' + txt.trim(), 'err');
         })
         .catch(function() {
-            // param.cgi unavailable (e.g. recorder-class device) — use the fallback.
+            // param.cgi unavailable (e.g. recorder-class device).
             return saveViaFallback(httpPort, socksPort);
         })
         .then(function() { saveBtn.disabled = false; })

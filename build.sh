@@ -4,13 +4,9 @@
 #   ./build.sh                 # build every variant
 #   ./build.sh aarch64 arm     # build only the named variant folders
 #
-# Downloads the prebuilt Tailscale binaries, strips them, then builds each
-# variant folder that contains an app/ directory. Variant folders map to the
-# .eap suffixes used in releases: *_ROOT -> _root, *_acap3 -> _acap3.
-#
-# Override the container runtime with RUNTIME=docker|podman.
-# TAILSCALE_VERSION pins the upstream binaries; it defaults to whatever
-# ci/upstream-version.sh resolves.
+# Variant folders map to release .eap suffixes: *_ROOT -> _root, *_acap3 -> _acap3.
+# RUNTIME=docker|podman forces a container runtime; TAILSCALE_VERSION overrides
+# the version resolved by ci/upstream-version.sh.
 set -eu
 
 REPO_ROOT=$(cd -P "$(dirname "$0")" && pwd)
@@ -57,10 +53,8 @@ fetch_arch() {
 fetch_arch arm arm
 fetch_arch arm64 arm64
 
-# Tailscale is the only upstream here that ships binaries with symbols, so the
-# strip is worth ~23 MB per package. It runs inside the SDK container: relying
-# on host cross-binutils meant a machine without them silently produced an
-# unstripped package under the same version number.
+# Upstream ships unstripped binaries; stripping saves ~23 MB per package. Do it
+# inside the SDK container: without host cross-binutils it silently did nothing.
 SDK_IMAGE=axisecp/acap-native-sdk:12.10.0
 SDK_UBUNTU=ubuntu24.04
 
