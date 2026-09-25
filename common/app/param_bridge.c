@@ -199,6 +199,19 @@ static void load_config_cache(AXParameter *handle) {
 #undef LOAD
 }
 
+/* The run script sources this file, so every value must be a single-quoted
+ * shell literal or it would be executed. */
+static void write_var(FILE *f, const char *name, const char *value) {
+    fprintf(f, "%s='", name);
+    for (const char *p = value; *p; p++) {
+        if (*p == '\'')
+            fputs("'\\''", f);
+        else
+            fputc(*p, f);
+    }
+    fputs("'\n", f);
+}
+
 static void write_config_file(void) {
     FILE *f = fopen(CONFIG_FILE, "w");
     if (!f) {
@@ -206,15 +219,15 @@ static void write_config_file(void) {
                CONFIG_FILE, strerror(errno));
         return;
     }
-    fprintf(f, "CUSTOM_SERVER=%s\n", cache_get(&cfg_custom_server,   ""));
-    fprintf(f, "AUTH_KEY=%s\n",      cache_get(&cfg_auth_key,        ""));
+    write_var(f, "CUSTOM_SERVER",    cache_get(&cfg_custom_server,   ""));
+    write_var(f, "AUTH_KEY",         cache_get(&cfg_auth_key,        ""));
 #ifdef HAS_PROXY_PORTS
-    fprintf(f, "CONF_HTTP=%s\n",     cache_get(&cfg_http_proxy_port, "8080"));
-    fprintf(f, "CONF_SOCKS=%s\n",    cache_get(&cfg_socks5_port,     "1080"));
+    write_var(f, "CONF_HTTP",        cache_get(&cfg_http_proxy_port, "8080"));
+    write_var(f, "CONF_SOCKS",       cache_get(&cfg_socks5_port,     "1080"));
 #endif
-    fprintf(f, "ACCEPT_DNS=%s\n",    cache_get(&cfg_accept_dns,      "false"));
-    fprintf(f, "ACCEPT_ROUTES=%s\n", cache_get(&cfg_accept_routes,   "false"));
-    fprintf(f, "ADVERTISE_ROUTES=%s\n", cache_get(&cfg_advertise_routes, ""));
+    write_var(f, "ACCEPT_DNS",       cache_get(&cfg_accept_dns,      "false"));
+    write_var(f, "ACCEPT_ROUTES",    cache_get(&cfg_accept_routes,   "false"));
+    write_var(f, "ADVERTISE_ROUTES", cache_get(&cfg_advertise_routes, ""));
     fclose(f);
     chmod(CONFIG_FILE, 0600);
 #ifdef HAS_PROXY_PORTS

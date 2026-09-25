@@ -74,23 +74,28 @@ TAILSCALED_PID=$!
 
 sleep 2
 
-TAILSCALE_CMD="$TAILSCALE_PATH --socket=$SOCKET_PATH up --reset --hostname=$(hostname)"
+# Arguments for `tailscale up`, built as a list so no setting is ever re-parsed
+# by the shell.
+set -- --socket="$SOCKET_PATH" up --reset --hostname="$(hostname)"
 
 if [ -n "$CUSTOM_SERVER" ]; then
-	TAILSCALE_CMD="$TAILSCALE_CMD --login-server $CUSTOM_SERVER"
+	set -- "$@" --login-server "$CUSTOM_SERVER"
 fi
 
 if [ -n "$AUTH_KEY" ]; then
-	TAILSCALE_CMD="$TAILSCALE_CMD --authkey $AUTH_KEY"
+	set -- "$@" --authkey "$AUTH_KEY"
 fi
 
 if [ "$ACCEPT_DNS" = "true" ]; then
-	TAILSCALE_CMD="$TAILSCALE_CMD --accept-dns=true"
+	set -- "$@" --accept-dns=true
 fi
 
 if [ "$ACCEPT_ROUTES" = "true" ]; then
-	TAILSCALE_CMD="$TAILSCALE_CMD --accept-routes=true"
+	set -- "$@" --accept-routes=true
 fi
+
+# "192.168.1.0/24, 10.0.0.0/24" is a natural way to type the list.
+ADVERTISE_ROUTES=$(printf '%s' "$ADVERTISE_ROUTES" | tr -d ' \t\r\n')
 
 # Advertise LAN subnets so this camera acts as a subnet router. Comma-separated
 # CIDRs (e.g. 192.168.1.0/24,10.0.0.0/8). In userspace-networking mode the
@@ -103,7 +108,7 @@ if [ -n "$ADVERTISE_ROUTES" ]; then
 		echo 1 >/proc/sys/net/ipv4/ip_forward 2>/dev/null || true
 		echo 1 >/proc/sys/net/ipv6/conf/all/forwarding 2>/dev/null || true
 	fi
-	TAILSCALE_CMD="$TAILSCALE_CMD --advertise-routes=$ADVERTISE_ROUTES"
+	set -- "$@" --advertise-routes="$ADVERTISE_ROUTES"
 fi
 
 # Run `tailscale up` in the background and act on its outcome. If the node needs
@@ -115,7 +120,7 @@ fi
 # for it from here, because in POSIX sh `wait` only works on children of the
 # current shell — a subshell waiting on the parent's child returns 127.
 {
-	eval "$TAILSCALE_CMD"
+	"$TAILSCALE_PATH" "$@"
 	up_exit=$?
 	if [ "$up_exit" -eq 0 ]; then
 		if [ "$VARIANT" = "root" ]; then
