@@ -12,7 +12,7 @@
       },
       "vendorUrl": "https://github.com/Mo3he/Axis_Cam_Tailscale",
       "runMode": "respawn",
-      "version": "1.102.4",
+      "version": "1.102.5",
       "architecture": "aarch64"
     },
     "configuration": {
