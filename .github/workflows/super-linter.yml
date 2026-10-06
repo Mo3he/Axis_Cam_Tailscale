@@ -3,6 +3,10 @@ name: Lint
 
 on: push
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
   Build:
     name: Lint code base
