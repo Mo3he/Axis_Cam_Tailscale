@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## 1.102.5 - 2026-10-06
 
 - Update to upstream 1.102.5.
+- Security: settings values are no longer executed as shell code. A value
+  containing `$(...)` (for example in AdvertiseRoutes) used to run when the
+  app started, as root in the `_root` variant. Values are now passed literally.
+- AdvertiseRoutes now accepts spaces after commas (`a/24, b/24`); previously
+  that dropped every route.
 
 ## 1.102.4 - 2026-09-11
 
