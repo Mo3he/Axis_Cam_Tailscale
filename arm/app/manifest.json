@@ -12,6 +12,7 @@
       "runMode": "respawn",
       "compatibleOsVersions": [
         {
+          "min": "12.10.68",
           "max": "13"
         }
       ]

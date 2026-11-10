@@ -18,6 +18,18 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Hold the SDK on its current minor (12.10.x). 12.11+ raises the AXIS OS floor (12.11.147), so remove this rule only when deliberately moving up.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "axisecp/acap-native-sdk",
+        "axisecp/acap-sdk",
+        "docker.io/axisecp/acap-native-sdk",
+        "docker.io/axisecp/acap-sdk"
+      ],
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false
+    },
+    {
       "description": "Transitive Go modules are off by default; enable so CVE fixes can land.",
       "matchManagers": ["gomod"],
       "matchDepTypes": ["indirect"],
