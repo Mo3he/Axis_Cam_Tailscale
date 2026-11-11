@@ -27,6 +27,7 @@ ACCEPT_ROUTES="false"
 ADVERTISE_ROUTES=""
 EXIT_NODE=""
 EXIT_NODE_ALLOW_LAN="true"
+SEND_LOGS="true"
 
 if [ -f "$STATE_DIR/params.conf" ]; then
 	. "$STATE_DIR/params.conf"
@@ -58,20 +59,20 @@ else
 fi
 
 logger -t "Tailscale_VPN" "Starting tailscaled daemon"
-if [ "$VARIANT" = "root" ]; then
-	$TAILSCALED_PATH \
-		--state="$STATE_DIR/tailscaled.state" \
-		--socket=$SOCKET_PATH \
-		>/dev/null 2>&1 &
-else
-	$TAILSCALED_PATH \
-		--state="$STATE_DIR/tailscaled.state" \
-		--socket=$SOCKET_PATH \
-		--socks5-server=localhost:$CONF_SOCKS \
-		--outbound-http-proxy-listen=localhost:$CONF_HTTP \
-		--tun=userspace-networking \
-		>/dev/null 2>&1 &
+set -- --state="$STATE_DIR/tailscaled.state" --socket="$SOCKET_PATH"
+if [ "$VARIANT" != "root" ]; then
+	set -- "$@" \
+		--socks5-server="localhost:$CONF_SOCKS" \
+		--outbound-http-proxy-listen="localhost:$CONF_HTTP" \
+		--tun=userspace-networking
 fi
+# tailscaled otherwise keeps an on-disk buffer of up to 50 MB of logs queued
+# for upload to Tailscale.
+if [ "$SEND_LOGS" = "false" ]; then
+	set -- "$@" --no-logs-no-support
+	logger -t "Tailscale_VPN" "Log upload to Tailscale disabled"
+fi
+"$TAILSCALED_PATH" "$@" >/dev/null 2>&1 &
 TAILSCALED_PID=$!
 
 sleep 2

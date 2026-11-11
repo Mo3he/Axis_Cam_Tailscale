@@ -121,6 +121,7 @@ take effect immediately:
 | Advertise Routes (Subnet Router) | *(empty)* | Comma-separated CIDRs (e.g. `192.168.1.0/24,10.0.0.0/8`) this camera will route for the tailnet, turning it into a subnet router. Approve the routes in the Tailscale admin console after saving. Leave blank to disable. |
 | Exit Node | *(empty)* | Tailscale IP or name of a node approved as an exit node. Applied with `tailscale set --exit-node` once connected, so an invalid value is logged without taking the camera off the tailnet. On standard builds only traffic sent through the local proxies uses it; on ROOT builds all camera traffic does. Not available on `armv7hf_acap3`. |
 | Allow LAN Access with Exit Node | `on` | Sets `--exit-node-allow-lan-access` so the local network stays reachable directly while an exit node is in use. Leave on for ROOT builds, or the camera can become unreachable from its own LAN. Not available on `armv7hf_acap3`. |
+| Send Diagnostic Logs to Tailscale | `on` | Tailscale keeps up to 50 MB of logs on the camera while it uploads them. Turn off to save storage; runs `tailscaled --no-logs-no-support`, so Tailscale support cannot see this device's logs. Not available on `armv7hf_acap3`. |
 
 ## Ports & security
 

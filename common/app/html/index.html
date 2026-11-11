@@ -477,6 +477,16 @@
                 <span class="settings-hint">Keeps the camera&apos;s local network reachable directly while an exit node is in use. Turning this off on a ROOT build can make the camera unreachable from its own LAN.</span>
             </div>
         </div>
+        <div class="settings-row toggle-row">
+            <label class="toggle-switch">
+                <input type="checkbox" id="input-send-logs" checked>
+                <span class="toggle-slider"></span>
+            </label>
+            <div class="toggle-info">
+                <div class="settings-label">Send Diagnostic Logs to Tailscale</div>
+                <span class="settings-hint">Tailscale keeps up to 50 MB of logs on the camera while it uploads them. Turn off to save storage (runs with <code>--no-logs-no-support</code>); Tailscale support then cannot see this device&apos;s logs.</span>
+            </div>
+        </div>
         <div class="settings-actions">
             <span class="save-status" id="save-status"></span>
             <button class="save-btn" id="save-btn">Save &amp; Restart</button>
@@ -881,6 +891,7 @@
     var advertiseRoutesInput = document.getElementById('input-advertise-routes');
     var exitNodeInput    = document.getElementById('input-exit-node');
     var exitNodeLanInput = document.getElementById('input-exit-node-lan');
+    var sendLogsInput    = document.getElementById('input-send-logs');
     var saveBtn       = document.getElementById('save-btn');
     var saveStatus  = document.getElementById('save-status');
 
@@ -914,6 +925,7 @@
         var avm = txt.match(/root\.\S+\.AdvertiseRoutes=(.*)/);
         var enm = txt.match(/root\.\S+\.ExitNode=(.*)/);
         var elm = txt.match(/root\.\S+\.ExitNodeAllowLAN=(.*)/);
+        var slm = txt.match(/root\.\S+\.SendLogs=(.*)/);
         // No expected keys means this isn't param.cgi output (e.g. a 404 page).
         if (!sm && !hm && !km) return false;
         if (sm) serverInput.value    = sm[1].trim();
@@ -925,6 +937,7 @@
         if (avm) advertiseRoutesInput.value = avm[1].trim();
         if (enm) exitNodeInput.value = enm[1].trim();
         if (elm) exitNodeLanInput.checked = elm[1].trim() !== 'false';
+        if (slm) sendLogsInput.checked = slm[1].trim() !== 'false';
         toggleProxyUi(!!hm && !!km);
         updateProxyDisplay(hm ? hm[1].trim() : null, km ? km[1].trim() : null);
         return true;
@@ -940,6 +953,7 @@
         if (typeof obj.AdvertiseRoutes === 'string') advertiseRoutesInput.value = obj.AdvertiseRoutes;
         if (typeof obj.ExitNode        === 'string') exitNodeInput.value = obj.ExitNode;
         if (typeof obj.ExitNodeAllowLAN === 'string') exitNodeLanInput.checked = obj.ExitNodeAllowLAN !== 'false';
+        if (typeof obj.SendLogs        === 'string') sendLogsInput.checked = obj.SendLogs !== 'false';
         toggleProxyUi(typeof obj.HttpProxyPort === 'string' && typeof obj.Socks5Port === 'string');
         updateProxyDisplay(obj.HttpProxyPort, obj.Socks5Port);
     }
@@ -973,7 +987,8 @@
                    '&AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false') +
                    '&AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim()) +
                    '&ExitNode='        + encodeURIComponent(exitNodeInput.value.trim()) +
-                   '&ExitNodeAllowLAN=' + (exitNodeLanInput.checked ? 'true' : 'false');
+                   '&ExitNodeAllowLAN=' + (exitNodeLanInput.checked ? 'true' : 'false') +
+                   '&SendLogs='        + (sendLogsInput.checked ? 'true' : 'false');
         return fetch(API_URL, {
             method: 'POST',
             credentials: 'same-origin',
@@ -1005,7 +1020,8 @@
             '&root.' + APP + '.AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false') +
             '&root.' + APP + '.AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim()) +
             '&root.' + APP + '.ExitNode='        + encodeURIComponent(exitNodeInput.value.trim()) +
-            '&root.' + APP + '.ExitNodeAllowLAN=' + (exitNodeLanInput.checked ? 'true' : 'false');
+            '&root.' + APP + '.ExitNodeAllowLAN=' + (exitNodeLanInput.checked ? 'true' : 'false') +
+            '&root.' + APP + '.SendLogs='        + (sendLogsInput.checked ? 'true' : 'false');
         fetch(PARAM_URL, {
             method: 'POST',
             credentials: 'same-origin',
