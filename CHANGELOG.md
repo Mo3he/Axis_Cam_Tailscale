@@ -20,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - New **Send Diagnostic Logs to Tailscale** toggle, on by default. Turning it
   off stops tailscaled keeping up to 50 MB of upload logs on the camera
   ([#9](https://github.com/Mo3he/Axis_Cam_Tailscale/issues/9)).
+- Fix: saving settings shortly after the local proxies were used no longer
+  fails with "port already in use" and leaves the tunnel down for up to a
+  minute. The port check now only counts listening sockets, not the
+  connections proxy clients leave behind.
 
 ## 1.104.5 - 2026-11-03
 
