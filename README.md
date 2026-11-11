@@ -119,6 +119,8 @@ take effect immediately:
 | Accept DNS | `off` | Sets `--accept-dns` on `tailscale up` (explicitly `false` when off). Allows the tailnet to push DNS settings to the camera. Not available on `armv7hf_acap3`. |
 | Accept Routes | `off` | Sets `--accept-routes` on `tailscale up` (explicitly `false` when off). Allows the camera to use subnet routes advertised by other nodes. Not available on `armv7hf_acap3`. |
 | Advertise Routes (Subnet Router) | *(empty)* | Comma-separated CIDRs (e.g. `192.168.1.0/24,10.0.0.0/8`) this camera will route for the tailnet, turning it into a subnet router. Approve the routes in the Tailscale admin console after saving. Leave blank to disable. |
+| Exit Node | *(empty)* | Tailscale IP or name of a node approved as an exit node. Applied with `tailscale set --exit-node` once connected, so an invalid value is logged without taking the camera off the tailnet. On standard builds only traffic sent through the local proxies uses it; on ROOT builds all camera traffic does. Not available on `armv7hf_acap3`. |
+| Allow LAN Access with Exit Node | `on` | Sets `--exit-node-allow-lan-access` so the local network stays reachable directly while an exit node is in use. Leave on for ROOT builds, or the camera can become unreachable from its own LAN. Not available on `armv7hf_acap3`. |
 
 ## Ports & security
 
@@ -236,6 +238,8 @@ announcement for details.
 - [x] **Accept DNS from tailnet toggle** - Opt-in setting passing
   `--accept-dns=true` to `tailscale up` (defaults off).
 - [x] **Accept routes toggle** - Opt-in setting passing `--accept-routes=true`.
+- [x] **Exit node setting** - Route internet-bound tunnel traffic through a
+  tailnet exit node, with LAN access kept on by default.
 - [ ] **Switch to tiny-tailscale binaries** - Evaluate replacing the bundled
   `tailscale`/`tailscaled` with [tiny-tailscale](https://github.com/iamromulan/tiny-tailscale)
   builds (single binary, ~43% smaller).
