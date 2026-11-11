@@ -86,13 +86,12 @@ if [ -n "$AUTH_KEY" ]; then
 	set -- "$@" --authkey "$AUTH_KEY"
 fi
 
-if [ "$ACCEPT_DNS" = "true" ]; then
-	set -- "$@" --accept-dns=true
-fi
-
-if [ "$ACCEPT_ROUTES" = "true" ]; then
-	set -- "$@" --accept-routes=true
-fi
+# Always pass both explicitly: `up --reset` restores CLI defaults for anything
+# omitted, and --accept-dns defaults to true, so leaving it out when the toggle
+# is off would still let the tailnet take over resolv.conf.
+[ "$ACCEPT_DNS" = "true" ] || ACCEPT_DNS="false"
+[ "$ACCEPT_ROUTES" = "true" ] || ACCEPT_ROUTES="false"
+set -- "$@" --accept-dns="$ACCEPT_DNS" --accept-routes="$ACCEPT_ROUTES"
 
 # "192.168.1.0/24, 10.0.0.0/24" is a natural way to type the list.
 ADVERTISE_ROUTES=$(printf '%s' "$ADVERTISE_ROUTES" | tr -d ' \t\r\n')

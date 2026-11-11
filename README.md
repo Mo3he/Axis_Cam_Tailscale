@@ -116,8 +116,8 @@ take effect immediately:
 | Auth Key | *(empty)* | Pre-authentication key (`tskey-auth-...`). Cleared automatically after first successful connection. Leave blank to authenticate via browser. |
 | HTTP Proxy Port | `8080` | Port for the outbound HTTP/HTTPS proxy. |
 | SOCKS5 Proxy Port | `1080` | Port for the outbound SOCKS5 proxy. |
-| Accept DNS | `off` | Passes `--accept-dns=true` to `tailscale up`. Allows the tailnet to push DNS settings to the camera. Not available on `armv7hf_acap3`. |
-| Accept Routes | `off` | Passes `--accept-routes=true` to `tailscale up`. Allows the camera to use subnet routes advertised by other nodes. Not available on `armv7hf_acap3`. |
+| Accept DNS | `off` | Sets `--accept-dns` on `tailscale up` (explicitly `false` when off). Allows the tailnet to push DNS settings to the camera. Not available on `armv7hf_acap3`. |
+| Accept Routes | `off` | Sets `--accept-routes` on `tailscale up` (explicitly `false` when off). Allows the camera to use subnet routes advertised by other nodes. Not available on `armv7hf_acap3`. |
 | Advertise Routes (Subnet Router) | *(empty)* | Comma-separated CIDRs (e.g. `192.168.1.0/24,10.0.0.0/8`) this camera will route for the tailnet, turning it into a subnet router. Approve the routes in the Tailscale admin console after saving. Leave blank to disable. |
 
 ## Ports & security
