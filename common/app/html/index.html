@@ -462,6 +462,21 @@
             <input class="settings-input" id="input-advertise-routes" type="text" autocomplete="off" placeholder="192.168.1.0/24,10.0.0.0/8 (leave blank to disable)">
             <span class="settings-hint">Comma-separated CIDRs this camera will route for the tailnet, turning it into a subnet router. Approve the routes in the Tailscale admin console after saving.</span>
         </div>
+        <div class="settings-row">
+            <label class="settings-label" for="input-exit-node">Exit Node</label>
+            <input class="settings-input" id="input-exit-node" type="text" autocomplete="off" placeholder="100.x.y.z or node name (leave blank to disable)">
+            <span class="settings-hint">Tailscale IP or name of a node approved as an exit node. Internet traffic sent through the tunnel leaves via that node. On ROOT builds this is all camera traffic.</span>
+        </div>
+        <div class="settings-row toggle-row">
+            <label class="toggle-switch">
+                <input type="checkbox" id="input-exit-node-lan" checked>
+                <span class="toggle-slider"></span>
+            </label>
+            <div class="toggle-info">
+                <div class="settings-label">Allow LAN Access with Exit Node</div>
+                <span class="settings-hint">Keeps the camera&apos;s local network reachable directly while an exit node is in use. Turning this off on a ROOT build can make the camera unreachable from its own LAN.</span>
+            </div>
+        </div>
         <div class="settings-actions">
             <span class="save-status" id="save-status"></span>
             <button class="save-btn" id="save-btn">Save &amp; Restart</button>
@@ -864,6 +879,8 @@
     var acceptDnsInput    = document.getElementById('input-accept-dns');
     var acceptRoutesInput = document.getElementById('input-accept-routes');
     var advertiseRoutesInput = document.getElementById('input-advertise-routes');
+    var exitNodeInput    = document.getElementById('input-exit-node');
+    var exitNodeLanInput = document.getElementById('input-exit-node-lan');
     var saveBtn       = document.getElementById('save-btn');
     var saveStatus  = document.getElementById('save-status');
 
@@ -895,6 +912,8 @@
         var dm = txt.match(/root\.\S+\.AcceptDNS=(.*)/);
         var rm = txt.match(/root\.\S+\.AcceptRoutes=(.*)/);
         var avm = txt.match(/root\.\S+\.AdvertiseRoutes=(.*)/);
+        var enm = txt.match(/root\.\S+\.ExitNode=(.*)/);
+        var elm = txt.match(/root\.\S+\.ExitNodeAllowLAN=(.*)/);
         // No expected keys means this isn't param.cgi output (e.g. a 404 page).
         if (!sm && !hm && !km) return false;
         if (sm) serverInput.value    = sm[1].trim();
@@ -904,6 +923,8 @@
         if (dm) acceptDnsInput.checked    = dm[1].trim() === 'true';
         if (rm) acceptRoutesInput.checked = rm[1].trim() === 'true';
         if (avm) advertiseRoutesInput.value = avm[1].trim();
+        if (enm) exitNodeInput.value = enm[1].trim();
+        if (elm) exitNodeLanInput.checked = elm[1].trim() !== 'false';
         toggleProxyUi(!!hm && !!km);
         updateProxyDisplay(hm ? hm[1].trim() : null, km ? km[1].trim() : null);
         return true;
@@ -917,6 +938,8 @@
         if (typeof obj.AcceptDNS       === 'string') acceptDnsInput.checked    = obj.AcceptDNS === 'true';
         if (typeof obj.AcceptRoutes    === 'string') acceptRoutesInput.checked = obj.AcceptRoutes === 'true';
         if (typeof obj.AdvertiseRoutes === 'string') advertiseRoutesInput.value = obj.AdvertiseRoutes;
+        if (typeof obj.ExitNode        === 'string') exitNodeInput.value = obj.ExitNode;
+        if (typeof obj.ExitNodeAllowLAN === 'string') exitNodeLanInput.checked = obj.ExitNodeAllowLAN !== 'false';
         toggleProxyUi(typeof obj.HttpProxyPort === 'string' && typeof obj.Socks5Port === 'string');
         updateProxyDisplay(obj.HttpProxyPort, obj.Socks5Port);
     }
@@ -948,7 +971,9 @@
                    (hasProxyPorts ? '&Socks5Port='     + encodeURIComponent(socksPort) : '') +
                    '&AcceptDNS='       + (acceptDnsInput.checked ? 'true' : 'false') +
                    '&AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false') +
-                   '&AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim());
+                   '&AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim()) +
+                   '&ExitNode='        + encodeURIComponent(exitNodeInput.value.trim()) +
+                   '&ExitNodeAllowLAN=' + (exitNodeLanInput.checked ? 'true' : 'false');
         return fetch(API_URL, {
             method: 'POST',
             credentials: 'same-origin',
@@ -978,7 +1003,9 @@
             (hasProxyPorts ? '&root.' + APP + '.Socks5Port='     + encodeURIComponent(socksPort) : '') +
             '&root.' + APP + '.AcceptDNS='       + (acceptDnsInput.checked ? 'true' : 'false') +
             '&root.' + APP + '.AcceptRoutes='    + (acceptRoutesInput.checked ? 'true' : 'false') +
-            '&root.' + APP + '.AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim());
+            '&root.' + APP + '.AdvertiseRoutes=' + encodeURIComponent(advertiseRoutesInput.value.trim()) +
+            '&root.' + APP + '.ExitNode='        + encodeURIComponent(exitNodeInput.value.trim()) +
+            '&root.' + APP + '.ExitNodeAllowLAN=' + (exitNodeLanInput.checked ? 'true' : 'false');
         fetch(PARAM_URL, {
             method: 'POST',
             credentials: 'same-origin',

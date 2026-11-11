@@ -47,6 +47,8 @@ static char *cfg_socks5_port     = NULL;
 static char *cfg_accept_dns      = NULL;
 static char *cfg_accept_routes   = NULL;
 static char *cfg_advertise_routes = NULL;
+static char *cfg_exit_node       = NULL;
+static char *cfg_exit_node_lan   = NULL;
 
 static void cache_set(char **field, const char *value) {
     if (!value) return;
@@ -180,6 +182,8 @@ static void load_config_cache(AXParameter *handle) {
     LOAD("AcceptDNS",      cfg_accept_dns)
     LOAD("AcceptRoutes",   cfg_accept_routes)
     LOAD("AdvertiseRoutes", cfg_advertise_routes)
+    LOAD("ExitNode",       cfg_exit_node)
+    LOAD("ExitNodeAllowLAN", cfg_exit_node_lan)
 #undef LOAD
 }
 
@@ -212,6 +216,8 @@ static void write_config_file(void) {
     write_var(f, "ACCEPT_DNS",       cache_get(&cfg_accept_dns,      "false"));
     write_var(f, "ACCEPT_ROUTES",    cache_get(&cfg_accept_routes,   "false"));
     write_var(f, "ADVERTISE_ROUTES", cache_get(&cfg_advertise_routes, ""));
+    write_var(f, "EXIT_NODE",        cache_get(&cfg_exit_node,       ""));
+    write_var(f, "EXIT_NODE_ALLOW_LAN", cache_get(&cfg_exit_node_lan, "true"));
     fclose(f);
     chmod(CONFIG_FILE, 0600);
 #ifdef HAS_PROXY_PORTS
@@ -254,6 +260,8 @@ static void parameter_changed(const gchar *name, const gchar *value,
     else if (strcmp(short_name, "AcceptDNS")      == 0) cache_set(&cfg_accept_dns,      value);
     else if (strcmp(short_name, "AcceptRoutes")   == 0) cache_set(&cfg_accept_routes,   value);
     else if (strcmp(short_name, "AdvertiseRoutes") == 0) cache_set(&cfg_advertise_routes, value);
+    else if (strcmp(short_name, "ExitNode")       == 0) cache_set(&cfg_exit_node,       value);
+    else if (strcmp(short_name, "ExitNodeAllowLAN") == 0) cache_set(&cfg_exit_node_lan, value);
 
     if (reload_timer_id)
         g_source_remove(reload_timer_id);
@@ -271,7 +279,8 @@ static const char *http_param_names[] = {
 #ifdef HAS_PROXY_PORTS
     "HttpProxyPort", "Socks5Port",
 #endif
-    "AcceptDNS", "AcceptRoutes", "AdvertiseRoutes"
+    "AcceptDNS", "AcceptRoutes", "AdvertiseRoutes",
+    "ExitNode", "ExitNodeAllowLAN"
 };
 
 static void cache_set_by_name(const char *name, const char *value) {
@@ -284,6 +293,8 @@ static void cache_set_by_name(const char *name, const char *value) {
     else if (strcmp(name, "AcceptDNS")       == 0) cache_set(&cfg_accept_dns,       value);
     else if (strcmp(name, "AcceptRoutes")    == 0) cache_set(&cfg_accept_routes,    value);
     else if (strcmp(name, "AdvertiseRoutes") == 0) cache_set(&cfg_advertise_routes, value);
+    else if (strcmp(name, "ExitNode")        == 0) cache_set(&cfg_exit_node,        value);
+    else if (strcmp(name, "ExitNodeAllowLAN") == 0) cache_set(&cfg_exit_node_lan,   value);
 }
 
 static int http_is_known_param(const char *name) {
@@ -539,6 +550,8 @@ int main(void) {
     g_ax_handle = handle;
 
     ensure_param(handle, "AdvertiseRoutes", "");
+    ensure_param(handle, "ExitNode", "");
+    ensure_param(handle, "ExitNodeAllowLAN", "true");
 
     load_config_cache(handle);
     write_config_file();
@@ -549,7 +562,8 @@ int main(void) {
 #ifdef HAS_PROXY_PORTS
         "HttpProxyPort", "Socks5Port",
 #endif
-        "AcceptDNS", "AcceptRoutes", "AdvertiseRoutes"
+        "AcceptDNS", "AcceptRoutes", "AdvertiseRoutes",
+        "ExitNode", "ExitNodeAllowLAN"
     };
     for (size_t i = 0; i < sizeof(params) / sizeof(params[0]); i++) {
         if (!ax_parameter_register_callback(handle, params[i],

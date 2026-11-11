@@ -25,6 +25,8 @@ CONF_SOCKS="1080"
 ACCEPT_DNS="false"
 ACCEPT_ROUTES="false"
 ADVERTISE_ROUTES=""
+EXIT_NODE=""
+EXIT_NODE_ALLOW_LAN="true"
 
 if [ -f "$STATE_DIR/params.conf" ]; then
 	. "$STATE_DIR/params.conf"
@@ -110,6 +112,9 @@ if [ -n "$ADVERTISE_ROUTES" ]; then
 	set -- "$@" --advertise-routes="$ADVERTISE_ROUTES"
 fi
 
+EXIT_NODE=$(printf '%s' "$EXIT_NODE" | tr -d ' \t\r\n')
+[ "$EXIT_NODE_ALLOW_LAN" = "false" ] || EXIT_NODE_ALLOW_LAN="true"
+
 # Run `tailscale up` in the background and act on its outcome. If the node needs
 # (re-)authentication, `up` blocks until the user logs in; backgrounding it
 # ensures the status publisher below keeps running so the UI can surface the
@@ -130,6 +135,18 @@ fi
 		# Auth succeeded with a one-time auth key — signal param_bridge to clear it
 		if [ -n "$AUTH_KEY" ]; then
 			: >"$STATE_DIR/authkey_clear"
+		fi
+		# Applied with `set` after login rather than passed to `up`: a name
+		# `up` cannot resolve (a typo, or no peers known before first login)
+		# fails the whole `up` and takes the camera off the tailnet.
+		if [ -n "$EXIT_NODE" ]; then
+			if "$TAILSCALE_PATH" --socket="$SOCKET_PATH" set \
+				--exit-node="$EXIT_NODE" \
+				--exit-node-allow-lan-access="$EXIT_NODE_ALLOW_LAN"; then
+				logger -t "Tailscale_VPN" "Using exit node $EXIT_NODE (LAN access: $EXIT_NODE_ALLOW_LAN)"
+			else
+				logger -t "Tailscale_VPN" "ERROR: could not use exit node '$EXIT_NODE'; check it is online and approved as an exit node"
+			fi
 		fi
 	else
 		logger -t "Tailscale_VPN" "ERROR: tailscale up failed (exit $up_exit)"

@@ -61,6 +61,16 @@
           "name": "AdvertiseRoutes",
           "default": "",
           "type": "string"
+        },
+        {
+          "name": "ExitNode",
+          "default": "",
+          "type": "string"
+        },
+        {
+          "name": "ExitNodeAllowLAN",
+          "default": "true",
+          "type": "string"
         }
       ]
     }
