@@ -38,21 +38,31 @@ if [ "$VARIANT" = "root" ]; then
 else
 	logger -t "Tailscale_VPN" "Starting: http_port=$CONF_HTTP socks_port=$CONF_SOCKS custom_server=${CUSTOM_SERVER:-(default)}"
 
-	# Check whether a TCP port is already bound
+	# A port is taken only while something LISTENs on it (state 0A) on the
+	# local address. Matching any row would also catch the TIME_WAIT sockets
+	# recent proxy clients leave behind and block restarts for about a minute.
 	is_port_in_use() {
-		local port=$1
-		local hex_port
-		hex_port=$(printf '%04X' "$port")
-		grep -q ":${hex_port} " /proc/net/tcp 2>/dev/null && return 0
-		grep -q ":${hex_port} " /proc/net/tcp6 2>/dev/null && return 0
-		return 1
+		hex_port=$(printf '%04X' "$1")
+		grep -qE "^ *[0-9]+: [0-9A-F]+:${hex_port} [0-9A-F]+:[0-9A-F]+ 0A " \
+			/proc/net/tcp /proc/net/tcp6 2>/dev/null
 	}
 
-	if is_port_in_use "$CONF_HTTP"; then
+	# The tailscaled stopped above may take a moment to release its listeners.
+	port_free() {
+		tries=0
+		while is_port_in_use "$1"; do
+			[ "$tries" -ge 10 ] && return 1
+			sleep 1
+			tries=$((tries + 1))
+		done
+		return 0
+	}
+
+	if ! port_free "$CONF_HTTP"; then
 		logger -t "Tailscale_VPN" "ERROR: HTTP proxy port $CONF_HTTP is already in use. Change it in Settings."
 		exit 1
 	fi
-	if is_port_in_use "$CONF_SOCKS"; then
+	if ! port_free "$CONF_SOCKS"; then
 		logger -t "Tailscale_VPN" "ERROR: SOCKS5 port $CONF_SOCKS is already in use. Change it in Settings."
 		exit 1
 	fi
