@@ -30,6 +30,16 @@
       "enabled": false
     },
     {
+      "description": "Hold the ROOT builds on ACAP SDK 1.15.1. 1.15.4 stamps manifest schema 1.7.5 into the package, newer than the 1.7.0 that AXIS OS 11.x firmware (the only OS that still allows root ACAPs) is documented to accept, for no functional gain.",
+      "matchFileNames": ["aarch64_ROOT/Dockerfile", "arm_ROOT/Dockerfile"],
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "axisecp/acap-native-sdk",
+        "docker.io/axisecp/acap-native-sdk"
+      ],
+      "enabled": false
+    },
+    {
       "description": "Transitive Go modules are off by default; enable so CVE fixes can land.",
       "matchManagers": ["gomod"],
       "matchDepTypes": ["indirect"],
