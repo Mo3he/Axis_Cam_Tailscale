@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## 1.104.6 - 2026-11-11
 
 - Update to upstream 1.104.6.
+- New **Exit Node** setting, with an **Allow LAN Access with Exit Node**
+  toggle that is on by default. Replaces setting an exit node by hand over
+  SSH, which did not survive a restart
+  ([#24](https://github.com/Mo3he/Axis_Cam_Tailscale/issues/24)).
+- Fix: turning **Accept DNS** off now stops the tailnet from taking over
+  `resolv.conf`. Both `--accept-dns` and `--accept-routes` are now always
+  passed explicitly
+  ([#18](https://github.com/Mo3he/Axis_Cam_Tailscale/issues/18)).
 
 ## 1.104.5 - 2026-11-03
 
