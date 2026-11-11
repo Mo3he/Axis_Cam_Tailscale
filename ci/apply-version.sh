@@ -90,6 +90,20 @@ done < <(grep -rl 'acap:installed-version' --include='*.html' . 2>/dev/null || t
 
 if [ -f CHANGELOG.md ] && ! grep -qE "^## \[?${VERSION}\]?" CHANGELOG.md; then
 	first_heading=$(grep -n -m1 '^## ' CHANGELOG.md | cut -d: -f1 || true)
+	rest_start=$first_heading
+	# Notes collected under a leading "## Unreleased" ship with this version.
+	unreleased=""
+	if [ -n "$first_heading" ] &&
+		sed -n "${first_heading}p" CHANGELOG.md | grep -qiE '^## \[?unreleased\]?[[:space:]]*$'; then
+		next=$(tail -n +"$((first_heading + 1))" CHANGELOG.md | grep -n -m1 '^## ' | cut -d: -f1 || true)
+		if [ -n "$next" ]; then
+			rest_start=$((first_heading + next))
+			unreleased=$(sed -n "$((first_heading + 1)),$((rest_start - 1))p" CHANGELOG.md | sed '/./,$!d')
+		else
+			rest_start=""
+			unreleased=$(tail -n +"$((first_heading + 1))" CHANGELOG.md | sed '/./,$!d')
+		fi
+	fi
 	tmp=$(mktemp)
 	{
 		if [ -n "$first_heading" ]; then
@@ -105,8 +119,11 @@ if [ -f CHANGELOG.md ] && ! grep -qE "^## \[?${VERSION}\]?" CHANGELOG.md; then
 		else
 			echo "- Release ${VERSION}."
 		fi
+		[ -n "$unreleased" ] && printf '%s\n' "$unreleased"
 		echo
-		[ -n "$first_heading" ] && tail -n +"$first_heading" CHANGELOG.md
+		if [ -n "$rest_start" ]; then
+			tail -n +"$rest_start" CHANGELOG.md
+		fi
 	} >"$tmp"
 	mv "$tmp" CHANGELOG.md
 	echo "changelog entry added for $VERSION"
