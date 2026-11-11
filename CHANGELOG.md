@@ -14,8 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   ([#24](https://github.com/Mo3he/Axis_Cam_Tailscale/issues/24)).
 - Fix: turning **Accept DNS** off now stops the tailnet from taking over
   `resolv.conf`. Both `--accept-dns` and `--accept-routes` are now always
-  passed explicitly
+  passed explicitly. If you rely on tailnet DNS (MagicDNS names) and had
+  Accept DNS off, turn it on after upgrading
   ([#18](https://github.com/Mo3he/Axis_Cam_Tailscale/issues/18)).
+- New **Send Diagnostic Logs to Tailscale** toggle, on by default. Turning it
+  off stops tailscaled keeping up to 50 MB of upload logs on the camera
+  ([#9](https://github.com/Mo3he/Axis_Cam_Tailscale/issues/9)).
 
 ## 1.104.5 - 2026-11-03
 

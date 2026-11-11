@@ -59,6 +59,11 @@
           "name": "ExitNodeAllowLAN",
           "default": "true",
           "type": "string"
+        },
+        {
+          "name": "SendLogs",
+          "default": "true",
+          "type": "string"
         }
       ]
     }
