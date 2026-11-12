@@ -159,18 +159,6 @@ EXIT_NODE=$(printf '%s' "$EXIT_NODE" | tr -d ' \t\r\n')
 				logger -t "Tailscale_VPN" "ERROR: could not use exit node '$EXIT_NODE'; check it is online and approved as an exit node"
 			fi
 		fi
-		# In userspace mode tailscaled hands tailnet connections to the camera's
-		# own address to 127.0.0.1, which the web server has answered in plain
-		# HTTP on every port since AXIS OS 13, so HTTPS over the tailnet failed.
-		# Serve 443 from 127.0.0.2, which reaches the camera's HTTPS listener.
-		if [ "$VARIANT" != "root" ]; then
-			if "$TAILSCALE_PATH" --socket="$SOCKET_PATH" serve --bg --yes \
-				--tcp=443 tcp://127.0.0.2:443 >/dev/null 2>&1; then
-				logger -t "Tailscale_VPN" "HTTPS (443) served from the camera's HTTPS listener"
-			else
-				logger -t "Tailscale_VPN" "WARNING: could not set up HTTPS forwarding on port 443"
-			fi
-		fi
 	else
 		logger -t "Tailscale_VPN" "ERROR: tailscale up failed (exit $up_exit)"
 	fi
