@@ -5,6 +5,14 @@ links to its full release notes on GitHub.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+- Fix HTTPS over the tailnet on AXIS OS 13. In userspace mode tailscaled hands
+  connections to the camera's Tailscale IP to `127.0.0.1`, which the OS 13 web
+  server answers in plain HTTP on every port, 443 included. The app now serves
+  port 443 from `[::1]` with `tailscale serve`, which reaches the camera's
+  HTTPS listener on every AXIS OS version.
+
 ## 1.104.6 - 2026-11-11
 
 - Update to upstream 1.104.6.

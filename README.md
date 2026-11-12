@@ -230,6 +230,10 @@ announcement for details.
 - [x] **Verify web UI works over HTTPS** - Verified live; the UI only issues
   relative-path requests, so it inherits the page's protocol with no
   mixed-content risk.
+- [x] **HTTPS over the tailnet** - In userspace mode tailscaled hands
+  connections to the camera's Tailscale IP to `127.0.0.1`, which OS 13's web
+  server answers in plain HTTP on every port. The app serves port 443 from
+  `[::1]` with `tailscale serve` instead.
 - [x] **Sign the ACAP via the Axis ACAP Portal** - Done; `aarch64`/`armv7hf`
   packages are signed with the Axis ACAP signing service. The `root` and
   `acap3` variants use manifest schema v1.x and are distributed unsigned.
