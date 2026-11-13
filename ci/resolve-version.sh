@@ -55,6 +55,23 @@ pin_value() {
 	fi
 }
 
+# Upstream version the first pin builds from, in upstream_version's format:
+# the pin's prefix (e.g. "v", "release/") is removed. Empty without a pin.
+pinned_upstream() {
+	local file arg module prefix value=''
+	file=$(cfg '.pins[0].file // empty')
+	arg=$(cfg '.pins[0].arg // empty')
+	module=$(cfg '.pins[0].goModule // empty')
+	prefix=$(cfg '.pins[0].prefix // empty')
+	[ -n "$file" ] && [ -f "$file" ] || return 0
+	if [ -n "$module" ]; then
+		value=$(awk -v m="$module" '{ for (i = 1; i < NF; i++) if ($i == m) { print $(i + 1); exit } }' "$file")
+	elif [ -n "$arg" ]; then
+		value=$(sed -n "s/^ARG ${arg}=//p" "$file" | head -1)
+	fi
+	printf '%s\n' "${value#"$prefix"}"
+}
+
 # FFmpeg and openvpn3 publish no releases, and their tag lists contain names
 # that are not versions, hence the explicit pattern per repo.
 upstream_version() {
@@ -112,13 +129,20 @@ elif [ "$POLICY" = mirror ]; then
 			TARGET="$UPSTREAM"
 			BUILD=true
 			RELEASE=true
-		elif [ "$UPSTREAM" != "$(pin_value)" ]; then
+		elif [ "$UPSTREAM" != "$(pinned_upstream)" ]; then
 			# Our line already ran past upstream, so keep moving forward on it
 			# rather than emitting a lower version that clashes with old tags.
 			TARGET=$(bump_patch "$CURRENT")
 			BUILD=true
 			RELEASE=true
 		fi
+	elif [ -n "$UPSTREAM" ] && [ -n "$(pinned_upstream)" ] && [ "$UPSTREAM" != "$(pinned_upstream)" ]; then
+		# Upstream caught up with a version we already used for a release of
+		# our own changes, so its release would otherwise be skipped. Build it
+		# as the next patch version.
+		TARGET=$(bump_patch "$CURRENT")
+		BUILD=true
+		RELEASE=true
 	fi
 elif [ "$POLICY" = patch ]; then
 	if [ -n "$UPSTREAM" ] && [ "$UPSTREAM" != "$(pin_value)" ]; then
